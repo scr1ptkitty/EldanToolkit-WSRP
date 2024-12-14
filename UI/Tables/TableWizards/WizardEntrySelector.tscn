@@ -1,0 +1,34 @@
+[gd_scene load_steps=2 format=3 uid="uid://c88d8nsyv6xni"]
+
+[ext_resource type="Script" path="res://UI/Tables/TableWizards/WizardEntrySelector.cs" id="1_s5fxe"]
+
+[node name="WizardEntrySelector" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_s5fxe")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="SetDefault" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+text = "Set Default"
+
+[node name="CopyDefault" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+text = "Copy Default"
+
+[node name="HSeparator" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="ItemList" type="ItemList" parent="."]
+layout_mode = 2
+size_flags_vertical = 0
+auto_height = true
+item_count = 2
+item_0/text = "Test"
+item_1/text = "Another"

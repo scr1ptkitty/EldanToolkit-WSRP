@@ -1,0 +1,61 @@
+[gd_scene load_steps=7 format=3 uid="uid://cn5tbfvqbc17j"]
+
+[ext_resource type="Script" path="res://UI/MainUI/MainUI.cs" id="1_nhw2b"]
+[ext_resource type="PackedScene" uid="uid://d3riqpcp87v8y" path="res://UI/FileExplorer/FileManagerTab.tscn" id="2_e7omo"]
+[ext_resource type="PackedScene" uid="uid://owsv2i4dnygr" path="res://UI/MainUI/ProjectSettingsUI.tscn" id="2_u7aqv"]
+[ext_resource type="Script" path="res://UI/MainUI/ETMenuBar.cs" id="3_n3lp2"]
+[ext_resource type="PackedScene" uid="uid://crppak53astlp" path="res://UI/Tables/TableWizards/DecorColorShift.tscn" id="4_h24nm"]
+[ext_resource type="Script" path="res://UI/MainUI/MainTabs.cs" id="5_xnucf"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_nhw2b")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MenuBar" type="MenuBar" parent="Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("3_n3lp2")
+ProjectSettingsUIScene = ExtResource("2_u7aqv")
+DecorColorShiftWizard = ExtResource("4_h24nm")
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="TabBar" type="TabBar" parent="Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("5_xnucf")
+
+[node name="HSeparator2" type="HSeparator" parent="Panel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="TabHolder" type="Control" parent="Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="File Explorer" parent="Panel/VBoxContainer/TabHolder" instance=ExtResource("2_e7omo")]
+layout_mode = 1

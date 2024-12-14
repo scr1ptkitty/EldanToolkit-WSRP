@@ -1,0 +1,27 @@
+<TableData>
+  <Description>
+	Defines the columns for the Item2 table, including references and asset paths.
+  </Description>
+  <Column>
+	<Name>ID</Name>
+	<ColumnType>ID</ColumnType>
+	<Tooltip>The ID for this colorshift.</Tooltip>
+  </Column>
+  <Column>
+	<Name>texturePath</Name>
+	<ColumnType>AssetPath</ColumnType>
+	<AssetFormat>tex</AssetFormat>
+	<Tooltip>The LUT that defines this colorshift.</Tooltip>
+  </Column>
+  <Column>
+	<Name>localizedTextId</Name>
+	<ColumnType>LocalizedTextID</ColumnType>
+	<Tooltip>The colorshift's name.</Tooltip>
+  </Column>
+  <Column>
+	<Name>previewSwatchIcon</Name>
+	<ColumnType>AssetPath</ColumnType>
+	<AssetFormat>tex</AssetFormat>
+	<Tooltip>The icon for this colorshift in the decor dye menu.</Tooltip>
+  </Column>
+</TableData>

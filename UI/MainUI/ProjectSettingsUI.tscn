@@ -1,0 +1,112 @@
+[gd_scene load_steps=3 format=3 uid="uid://owsv2i4dnygr"]
+
+[ext_resource type="Script" path="res://UI/MainUI/ProjectSettingsUI.cs" id="1_gbjcs"]
+[ext_resource type="Texture2D" uid="uid://uhp81af83f2v" path="res://UI/FileExplorer/Icons/Icons8/icons8-directory.svg" id="2_xwkvs"]
+
+[node name="Window" type="Window"]
+initial_position = 2
+size = Vector2i(900, 300)
+transient = true
+popup_window = true
+script = ExtResource("1_gbjcs")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="ProjectSettingsLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Project Settings"
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="ArchivePathLabel" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Archive Path:"
+
+[node name="ArchivePathBox" type="TextEdit" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ArchivePathFind" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("2_xwkvs")
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="NexusVaultPathLabel" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "NexusVault Path:"
+
+[node name="NexusVaultPathBox" type="TextEdit" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NexusVaultPathFind" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("2_xwkvs")
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="IndexToolPathLabel" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer4"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Index Tool Path:"
+
+[node name="IndexToolPathBox" type="TextEdit" parent="MarginContainer/VBoxContainer/HBoxContainer4"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="IndexToolPathFind" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer4"]
+unique_name_in_owner = true
+layout_mode = 2
+icon = ExtResource("2_xwkvs")
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="ProjectSettingsSave" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Save"
+
+[node name="ProjectSettingsCancel" type="Button" parent="MarginContainer/VBoxContainer/HBoxContainer3"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel"

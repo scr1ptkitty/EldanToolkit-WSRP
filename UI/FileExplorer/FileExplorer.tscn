@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3 uid="uid://5be8g4twjf8q"]
+
+[ext_resource type="Script" path="res://UI/FileExplorer/ProjectFileSystemView.cs" id="1_bdpvt"]
+[ext_resource type="PackedScene" uid="uid://dam3p4p72kyvv" path="res://UI/FileExplorer/FileEntry.tscn" id="2_4pmbe"]
+
+[node name="ProjectFiles" type="MarginContainer" node_paths=PackedStringArray("fileList")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_bdpvt")
+fileList = NodePath("ScrollContainer/FileList")
+fileEntryScene = ExtResource("2_4pmbe")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="FileList" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

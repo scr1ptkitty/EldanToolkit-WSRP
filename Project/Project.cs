@@ -10,7 +10,7 @@ namespace EldanToolkit.Project
     public partial class Project : Node
     {
         public ProjectFileSystem FileSystem {  get; private set; }
-        public TableDataSet DataSet { get; private set; }
+        public TableManager TableManager { get; private set; }
 
         public string ProjectPath { get; private set; }
 
@@ -46,9 +46,8 @@ namespace EldanToolkit.Project
             FileSystem.MakeFolders();
             AddChild(FileSystem);
 
-            DataSet = new TableDataSet();
-            AddChild(DataSet);
-            //DataSet.PrepTables(this);
+            TableManager = new TableManager();
+            AddChild(TableManager);
 
             Save();
             return true;
@@ -75,9 +74,8 @@ namespace EldanToolkit.Project
             FileSystem.projectPath = path;
             AddChild(FileSystem);
 
-            DataSet = new TableDataSet();
-            AddChild(DataSet);
-            //DataSet.PrepTables(this);
+            TableManager = new TableManager();
+            AddChild(TableManager);
 
             return true;
         }

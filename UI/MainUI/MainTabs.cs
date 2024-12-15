@@ -1,26 +1,29 @@
 ﻿using Godot;
 using System.Collections.Generic;
+using System.Linq;
 
 public partial class MainTabs : TabBar
 {
 	private List<Control> tabs = new();
 	private Control tabHolder;
-	private Control fileExplorerTab;
 
 	public void SetupTabs(Control tabHolder)
 	{
 		this.tabHolder = tabHolder;
 		TabChanged += ChangeTab;
 		TabClosePressed += CloseTab;
-
-		fileExplorerTab = tabHolder.GetChild<Control>(0);
-		AddTab(fileExplorerTab);
+		
+		foreach(var tab in tabHolder.GetChildren().OfType<Control>())
+		{
+			AddTab(tab);
+		}
 		ChangeTab(0);
 	}
 
 	public bool CanCloseTab(Control tab)
 	{
-		if (tab == fileExplorerTab) return false;
+		if (tab is ProjectFileManager || tab is TableEditorTab) return false;
+		//if (tab == fileExplorerTab) return false;
 		return true;
 	}
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cn5tbfvqbc17j"]
+[gd_scene load_steps=8 format=3 uid="uid://cn5tbfvqbc17j"]
 
 [ext_resource type="Script" path="res://UI/MainUI/MainUI.cs" id="1_nhw2b"]
 [ext_resource type="PackedScene" uid="uid://d3riqpcp87v8y" path="res://UI/FileExplorer/FileManagerTab.tscn" id="2_e7omo"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://UI/MainUI/ETMenuBar.cs" id="3_n3lp2"]
 [ext_resource type="PackedScene" uid="uid://crppak53astlp" path="res://UI/Tables/TableWizards/DecorColorShift.tscn" id="4_h24nm"]
 [ext_resource type="Script" path="res://UI/MainUI/MainTabs.cs" id="5_xnucf"]
+[ext_resource type="PackedScene" uid="uid://dbsj5ycigpnya" path="res://UI/TableEditor/TableEditorTab.tscn" id="7_7l5uc"]
 
 [node name="Control" type="Control"]
 layout_mode = 3
@@ -49,6 +50,7 @@ layout_mode = 2
 script = ExtResource("5_xnucf")
 
 [node name="HSeparator2" type="HSeparator" parent="Panel/VBoxContainer"]
+visible = false
 layout_mode = 2
 size_flags_vertical = 0
 
@@ -58,4 +60,7 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [node name="File Explorer" parent="Panel/VBoxContainer/TabHolder" instance=ExtResource("2_e7omo")]
+layout_mode = 1
+
+[node name="Table Editor" parent="Panel/VBoxContainer/TabHolder" instance=ExtResource("7_7l5uc")]
 layout_mode = 1

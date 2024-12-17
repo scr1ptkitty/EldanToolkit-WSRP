@@ -85,11 +85,13 @@ namespace WildStar.GameTable
 					var columnNameBytes = reader.ReadBytes(((int)column.NameLength - 1) * 2);
 					string columnName = Encoding.Unicode.GetString(columnNameBytes);
 
+					columnsOrdered.Add(columnName); // Save the original version of the column name
+
+					if (columnName.ToUpper() == "ID") { columnName = "ID"; } // To ensure that this field is consistent.
+
 					table.SetColumn(columnName, GetDataType(column.Type));
 					table.SetColumnUserData(columnName, "ColumnUnknown2", column.Unknown2);
 					table.SetColumnUserData(columnName, "ColumnUnknown3", column.Unknown3);
-
-                    columnsOrdered.Add(columnName);
 				}
                 table.SetColumn("UID", typeof(uint));
                 table.SetUserData("ColumnsOrdered", columnsOrdered); // Store the proper order of the columns, for writing later.

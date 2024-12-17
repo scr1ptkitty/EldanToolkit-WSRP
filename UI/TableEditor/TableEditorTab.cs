@@ -2,6 +2,7 @@ using EldanToolkit.Project;
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using WildStar.TestBed;
 
 public partial class TableEditorTab : VBoxContainer
@@ -12,21 +13,38 @@ public partial class TableEditorTab : VBoxContainer
 	private Dictionary<int, TableViewReference> TableSelectorLookup = new();
 	private Container EntryEditor;
 	private Container EntryList;
+	private Button PrevPageButton;
+	private Button NextPageButton;
+
+	private TableModManager mods;
 
 	private TableViewReference CurrentTable;
 	private DataTable TableRef;
 	private int? CurrentEntryID = null;
-	private const int EntriesPerPage = 20;
+	private const int EntriesPerPage = 10;
+
+	[Export]
+	public PackedScene EntryListButton;
+
+	private List<KeyValuePair<uint, DataRow>> OrderedList = null;
+
+	private (uint, uint) CurrentPage = (0, 0);
 
 	public override void _Ready()
 	{
 		base._Ready();
+		mods = new TableModManager(ProjectHolder.project);
 		BreadcrumbsHolder = GetNode<Container>("%Breadcrumbs");
 		TableSelector = GetNode<OptionButton>("%TableSelector");
 		TableSelector.ItemSelected += TableSelected;
 
 		EntryEditor = GetNode<Container>("%EntryEditor");
 		EntryList = GetNode<Container>("%EntryList");
+
+		PrevPageButton = GetNode<Button>("%PrevPageButton");
+		PrevPageButton.Pressed += PrevPage;
+		NextPageButton = GetNode<Button>("%NextPageButton");
+		NextPageButton.Pressed += NextPage;
 
 		UpdateBreadcrumbs();
 		UpdateTableSelector();
@@ -85,12 +103,25 @@ public partial class TableEditorTab : VBoxContainer
 		CurrentTable = table;
 		if (table.Type == TableViewReference.TableViewType.CustomView) return;
 
-		TableRef = ProjectHolder.project.TableManager.GetTableAsync(table.NameEnum).Result;
+		var task = ProjectHolder.project.TableManager.GetTableAsync(table.NameEnum);
+		TableRef = task.Result;
+
+		GotoPage(0, true);
 	}
 
-	/*private int GotoPage(int id, bool forward)
+	private void NextPage()
 	{
-		if(TableRef == null) return -1;
+		GotoPage(CurrentPage.Item2, true);
+	}
+
+	private void PrevPage()
+	{
+		GotoPage(CurrentPage.Item1, false);
+	}
+
+	private void GotoPage(uint id, bool forward)
+	{
+		if (TableRef == null) throw new InvalidOperationException("Table not loaded?");
 
 		foreach (var item in EntryList.GetChildren())
 		{
@@ -98,8 +129,53 @@ public partial class TableEditorTab : VBoxContainer
 			EntryList.RemoveChild(item);
 		}
 
-		
-	}*/
+		UpdateListCache();
+		var list = OrderedList.AsEnumerable();
+		if(!forward)
+		{
+			list = list.Reverse();
+		}
+		var index = OrderedList.FindIndex(r => r.Key == id);
+		IEnumerable<KeyValuePair<uint, DataRow>> entriesToShow;
+		if (forward)
+		{
+			entriesToShow = OrderedList.Skip(index + 1).Take(EntriesPerPage);
+			int got = entriesToShow.Count();
+			int missing = EntriesPerPage - got;
+			if (missing > 0)
+			{
+				var stuffToAdd = OrderedList.SkipLast(got).TakeLast(missing);
+				entriesToShow = stuffToAdd.Concat(entriesToShow);
+			}
+		}
+		else
+		{
+			entriesToShow = OrderedList.Take(index).TakeLast(EntriesPerPage);
+			int got = entriesToShow.Count();
+			int missing = EntriesPerPage - got;
+			if (missing > 0)
+			{
+				var stuffToAdd = OrderedList.Skip(got).Take(missing);
+				entriesToShow = entriesToShow.Concat(stuffToAdd);
+			}
+		}
+
+		CurrentPage = (entriesToShow.First().Key, entriesToShow.Last().Key);
+
+
+		foreach (var entry in entriesToShow)
+		{
+			Button entryButton = EntryListButton.Instantiate<Button>();
+			entryButton.Text = $"{entry.Key}";
+			
+			EntryList.AddChild(entryButton);
+		}
+	}
+
+	private void UpdateListCache()
+	{
+		OrderedList = TableRef.GetRowList().OrderBy(r => r.Key).ToList(); // Good place to add any filters.
+	}
 
 	public void SelectEntry(int? id)
 	{

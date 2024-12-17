@@ -15,6 +15,12 @@ public class DataTable
 	{
 	}
 
+	public DataTable(DataTable fallback)
+	{
+		schema = new Dictionary<string, Type>(fallback.schema);
+		fallbackTable = fallback;
+	}
+
 	public void SetColumn(string name, Type type)
 	{
 		schema[name] = type;

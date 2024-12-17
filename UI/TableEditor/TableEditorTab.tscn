@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://dbsj5ycigpnya"]
+[gd_scene load_steps=3 format=3 uid="uid://dbsj5ycigpnya"]
 
 [ext_resource type="Script" path="res://UI/TableEditor/TableEditorTab.cs" id="1_tixjt"]
+[ext_resource type="PackedScene" uid="uid://3avl6rfarkao" path="res://UI/Tables/EntryListButton.tscn" id="2_s5sui"]
 
 [node name="VBoxContainer" type="VBoxContainer"]
 anchors_preset = 15
@@ -9,6 +10,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_tixjt")
+EntryListButton = ExtResource("2_s5sui")
 
 [node name="TopBar" type="HBoxContainer" parent="."]
 custom_minimum_size = Vector2(0, 40)
@@ -32,25 +34,28 @@ size_flags_vertical = 3
 [node name="VBoxContainer" type="VBoxContainer" parent="TableEditor"]
 layout_mode = 2
 
-[node name="EntryList" type="ScrollContainer" parent="TableEditor/VBoxContainer"]
-unique_name_in_owner = true
+[node name="EntryListScroll" type="ScrollContainer" parent="TableEditor/VBoxContainer"]
 layout_mode = 2
+size_flags_vertical = 3
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TableEditor/VBoxContainer/EntryList"]
+[node name="EntryList" type="VBoxContainer" parent="TableEditor/VBoxContainer/EntryListScroll"]
+unique_name_in_owner = true
 layout_mode = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="TableEditor/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 
-[node name="Button" type="Button" parent="TableEditor/VBoxContainer/HBoxContainer"]
+[node name="PrevPageButton" type="Button" parent="TableEditor/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "<--"
 
 [node name="LineEdit" type="LineEdit" parent="TableEditor/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="Button2" type="Button" parent="TableEditor/VBoxContainer/HBoxContainer"]
+[node name="NextPageButton" type="Button" parent="TableEditor/VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "-->"
 

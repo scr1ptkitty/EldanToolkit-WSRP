@@ -1,13 +1,10 @@
 ﻿using EldanToolkit.Shared;
 using Godot;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using WildStar.GameTable;
-using WildStar.TestBed;
 using WildStar.TextTable;
 
 namespace EldanToolkit.Project
@@ -22,12 +19,13 @@ namespace EldanToolkit.Project
 
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
-        public void PrepTables(Project proj)
-        {
-            this.proj = proj;
-        }
+		public override void _Ready()
+		{
+			base._Ready();
+            proj = GetParent<Project>();
+		}
 
-        public async Task<DataTable> GetTableAsync(GameTableName tableName)
+		public async Task<DataTable> GetTableAsync(GameTableName tableName)
         {
             if (_loadedTables.TryGetValue(tableName, out var table))
             {
@@ -63,28 +61,26 @@ namespace EldanToolkit.Project
             return await loadTask;
         }
 
-        private Task<DataTable> LoadTableAsync(GameTableName name)
+        private async Task<DataTable> LoadTableAsync(GameTableName name)
 		{
-            return Task.Run(() =>
+            string fullPath = $"{proj.FileSystem.projectFilesPath}/{GameTableUtil.GetDefaultFilePath(name)}";
+            if (!File.Exists(fullPath) && !AddToProject(name))
             {
-                string fullPath = $"{proj.FileSystem.projectFilesPath}/{GameTableUtil.GetDefaultFilePath(name)}";
-                if (!File.Exists(fullPath) && !AddToProject(name))
-                {
-                    throw new FileNotFoundException($"Table file not found: {fullPath}");
-                }
+                throw new FileNotFoundException($"Table file not found: {fullPath}");
+            }
 
-				DataTable tbl;
-                if (GameTableUtil.IsLocalization(name))
-                {
-                    tbl = TextTableLoader.Load(tablePath + name);
-                }
-                else
-                {
-                    tbl = GameTableLoader.Load(tablePath + name);
-                }
-                _loadedTables[name] = tbl;
-                return tbl;
-            });
+            string path = Path.Combine(proj.FileSystem.projectFilesPath, GameTableUtil.GetDefaultFilePath(name));
+			DataTable tbl;
+            if (GameTableUtil.IsLocalization(name))
+            {
+                tbl = TextTableLoader.Load(path);
+            }
+            else
+            {
+                tbl = GameTableLoader.Load(path);
+            }
+            _loadedTables[name] = tbl;
+            return tbl;
 		}
 
         public bool AddToProject(GameTableName name)

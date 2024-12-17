@@ -6,6 +6,8 @@ public class TableViewReference
 {
 	public string Name { get; private set; }
 
+	public GameTableName NameEnum { get => Enum.Parse<GameTableName>(Name); }
+
 	public enum TableViewType
 	{
 		GameTable,

@@ -19,8 +19,8 @@ namespace EldanToolkit.Project
         public string projectPath;
 
         public string projectFilesPath { get { return Path.Combine(projectPath, "ProjectFiles"); } }
-        public string processedFilesPath { get { return Path.Combine(projectPath, "ProcessedFiles"); } }
-        public string clientPatchPath { get { return Path.Combine(projectPath, "ClientPatch"); } }
+		public string processedFilesPath { get { return Path.Combine(projectPath, "ProcessedFiles"); } }
+		public string clientPatchPath { get { return Path.Combine(projectPath, "ClientPatch"); } }
         public string launcherPatchPath { get { return Path.Combine(projectPath, "LauncherPatch"); } }
         public string originalFilesPath { get { return Path.Combine(projectPath, "OriginalFiles"); } }
 
@@ -140,7 +140,7 @@ namespace EldanToolkit.Project
             return null;
 		}
 
-        public void AddtoProject(string path, bool forceLoad = false)
+        public bool AddtoProject(string path, bool forceLoad = false)
         {
             foreach(var a in archiveFiles)
             {
@@ -154,9 +154,10 @@ namespace EldanToolkit.Project
                     fs.Write(file);
                     fs.Flush();
                     fs.Dispose();
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         public void RemoveFromProject(string path)

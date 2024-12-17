@@ -29,16 +29,36 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ScrollContainer" type="ScrollContainer" parent="TableEditor"]
+[node name="VBoxContainer" type="VBoxContainer" parent="TableEditor"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TableEditor/ScrollContainer"]
+[node name="EntryList" type="ScrollContainer" parent="TableEditor/VBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ScrollContainer2" type="ScrollContainer" parent="TableEditor"]
+[node name="VBoxContainer" type="VBoxContainer" parent="TableEditor/VBoxContainer/EntryList"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TableEditor/ScrollContainer2"]
+[node name="HBoxContainer" type="HBoxContainer" parent="TableEditor/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="Button" type="Button" parent="TableEditor/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "<--"
+
+[node name="LineEdit" type="LineEdit" parent="TableEditor/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Button2" type="Button" parent="TableEditor/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "-->"
+
+[node name="EntryEditor" type="ScrollContainer" parent="TableEditor"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TableEditor/EntryEditor"]
 layout_mode = 2
 
 [node name="HSeparator" type="HSeparator" parent="."]

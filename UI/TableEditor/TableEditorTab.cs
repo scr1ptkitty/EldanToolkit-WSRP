@@ -23,8 +23,13 @@ public partial class TableEditorTab : VBoxContainer
 	private int? CurrentEntryID = null;
 	private const int EntriesPerPage = 10;
 
+	private ButtonGroup buttonGroup;
+
 	[Export]
 	public PackedScene EntryListButton;
+
+	[Export]
+	public PackedScene EntryCell;
 
 	private List<KeyValuePair<uint, DataRow>> OrderedList = null;
 
@@ -45,6 +50,8 @@ public partial class TableEditorTab : VBoxContainer
 		PrevPageButton.Pressed += PrevPage;
 		NextPageButton = GetNode<Button>("%NextPageButton");
 		NextPageButton.Pressed += NextPage;
+
+		buttonGroup = new ButtonGroup();
 
 		UpdateBreadcrumbs();
 		UpdateTableSelector();
@@ -103,8 +110,7 @@ public partial class TableEditorTab : VBoxContainer
 		CurrentTable = table;
 		if (table.Type == TableViewReference.TableViewType.CustomView) return;
 
-		var task = ProjectHolder.project.TableManager.GetTableAsync(table.NameEnum);
-		TableRef = task.Result;
+		TableRef = mods.GetTableMod(table.NameEnum);
 
 		GotoPage(0, true);
 	}
@@ -167,6 +173,9 @@ public partial class TableEditorTab : VBoxContainer
 		{
 			Button entryButton = EntryListButton.Instantiate<Button>();
 			entryButton.Text = $"{entry.Key}";
+			entryButton.ToggleMode = true;
+			entryButton.ButtonGroup = buttonGroup;
+			entryButton.Pressed += () => SelectEntry(entry.Key);
 			
 			EntryList.AddChild(entryButton);
 		}
@@ -177,9 +186,30 @@ public partial class TableEditorTab : VBoxContainer
 		OrderedList = TableRef.GetRowList().OrderBy(r => r.Key).ToList(); // Good place to add any filters.
 	}
 
-	public void SelectEntry(int? id)
+	public void SelectEntry(uint? id)
 	{
 		if (id == CurrentEntryID) return;
 
+		// Clear
+		foreach (var child in EntryEditor.GetChildren())
+		{
+			child.QueueFree();
+			EntryEditor.RemoveChild(child);
+		}
+
+		if (id == null || TableRef == null) return;
+
+		DataRow row = TableRef.GetRow(id.Value);
+
+		foreach(var column in TableRef.schema)
+		{
+			if (column.Key == "UID") continue;
+			Control cell = EntryCell.Instantiate<Control>();
+			Label varName = cell.GetNode<Label>("%VariableName");
+			varName.Text = column.Key;
+			LineEdit edit = cell.GetNode<LineEdit>("%VariableEdit");
+			edit.Text = row.GetValue<object>(column.Key).ToString();
+			EntryEditor.AddChild(cell);
+		}
 	}
 }

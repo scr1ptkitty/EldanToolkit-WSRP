@@ -1,10 +1,15 @@
-﻿using System;
+﻿using Godot;
+using SharpCompress;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using WildStar.GameTable.IO;
 using WildStar.GameTable.Static;
 
@@ -45,117 +50,152 @@ namespace WildStar.GameTable
             return size;
 		}
 
-		public static DataTable Load(string path)
-		{
+        public static DataTable Load(string path)
+        {
+            /*    return await LoadAsync(path);
+			}
+
+			public static async Task<DataTable> LoadAsync(string path)
+			{*/
+            var sw = Stopwatch.StartNew();
             DataTable table = new DataTable();
 
-			using (FileStream stream = File.OpenRead(path))
-			using (var reader = new BinaryReader(stream, Encoding.Unicode))
-			{
-				var headerSize = Marshal.SizeOf<Header>();
-				Header header = MemoryMarshal.Read<Header>(reader.ReadBytes(headerSize));
+            byte[] bytes = File.ReadAllBytesAsync(path).Result;
+
+            Header header;
+            int headerSize;
+			List<string> columnsOrdered = new();
+
+			using (var stream = new MemoryStream(bytes))
+            using (var reader = new BinaryReader(stream, Encoding.Unicode))
+            {
+                GD.Print($"Table {path}: {sw.ElapsedMilliseconds} ms.");
+                headerSize = Marshal.SizeOf<Header>();
+                header = MemoryMarshal.Read<Header>(reader.ReadBytes(headerSize));
 
                 table.SetUserData("RecordSize", header.RecordSize);
 
 
-				// name
-				var nameLength = reader.ReadBytes(((int)header.NameLength - 1) * 2);
-				table.Name = Encoding.Unicode.GetString(nameLength);
+                // name
+                var nameLength = reader.ReadBytes(((int)header.NameLength - 1) * 2);
+                table.Name = Encoding.Unicode.GetString(nameLength);
 
-				// columns
-				long columnDataOffset = headerSize + header.ColumnOffset;
-				stream.Position = columnDataOffset;
-				ReadOnlySpan<TblColumn> columns = MemoryMarshal.Cast<byte, TblColumn>(
-					reader.ReadBytes(Marshal.SizeOf<TblColumn>() * (int)header.ColumnCount));
+                // columns
+                long columnDataOffset = headerSize + header.ColumnOffset;
+                stream.Position = columnDataOffset;
+                ReadOnlySpan<TblColumn> columns = MemoryMarshal.Cast<byte, TblColumn>(
+                    reader.ReadBytes(Marshal.SizeOf<TblColumn>() * (int)header.ColumnCount));
 
-				// column names
-				long columnStringTableOffset = columnDataOffset + (Marshal.SizeOf<TblColumn>() * header.ColumnCount);
+                // column names
+                long columnStringTableOffset = columnDataOffset + (Marshal.SizeOf<TblColumn>() * header.ColumnCount);
 
-				// why??
-				if (columnStringTableOffset % 16 != 0)
-					columnStringTableOffset += columnStringTableOffset % 16;
+                // why??
+                if (columnStringTableOffset % 16 != 0)
+                    columnStringTableOffset += columnStringTableOffset % 16;
 
-                List<string> columnsOrdered = new();
+                foreach (TblColumn column in columns)
+                {
+                    long columnNamePosition = columnStringTableOffset + column.NameOffset;
+                    stream.Position = columnNamePosition;
 
-				foreach (TblColumn column in columns)
-				{
-					long columnNamePosition = columnStringTableOffset + column.NameOffset;
-					stream.Position = columnNamePosition;
+                    var columnNameBytes = reader.ReadBytes(((int)column.NameLength - 1) * 2);
+                    string columnName = Encoding.Unicode.GetString(columnNameBytes);
 
-					var columnNameBytes = reader.ReadBytes(((int)column.NameLength - 1) * 2);
-					string columnName = Encoding.Unicode.GetString(columnNameBytes);
+                    columnsOrdered.Add(columnName); // Save the original version of the column name
 
-					columnsOrdered.Add(columnName); // Save the original version of the column name
+                    if (columnName.ToUpper() == "ID") { columnName = "ID"; } // To ensure that this field is consistent.
 
-					if (columnName.ToUpper() == "ID") { columnName = "ID"; } // To ensure that this field is consistent.
-
-					table.SetColumn(columnName, GetDataType(column.Type));
-					table.SetColumnUserData(columnName, "ColumnUnknown2", column.Unknown2);
-					table.SetColumnUserData(columnName, "ColumnUnknown3", column.Unknown3);
-				}
+                    table.SetColumn(columnName, GetDataType(column.Type));
+                    table.SetColumnUserData(columnName, "ColumnUnknown2", column.Unknown2);
+                    table.SetColumnUserData(columnName, "ColumnUnknown3", column.Unknown3);
+                }
                 table.SetColumn("UID", typeof(uint));
                 table.SetUserData("ColumnsOrdered", columnsOrdered); // Store the proper order of the columns, for writing later.
 
-				// records
-				long recordDataOffset = headerSize + header.RecordOffset;
-				for (var i = 0; i < header.RecordCount; i++)
-				{
-					stream.Position = recordDataOffset + header.RecordSize * i;
-
-					DataRow row = table.NewRow();
-					foreach (string column in columnsOrdered)
-					{
-						switch (GetDataType(table.schema[column]))
-						{
-							case DataType.Integer:
-								uint intVal = reader.ReadUInt32();
-								row.SetValue(column, intVal);
-								break;
-							case DataType.Single:
-								float floatVal = reader.ReadSingle();
-								row.SetValue(column, floatVal);
-								break;
-							case DataType.Boolean:
-								bool boolVal = Convert.ToBoolean(reader.ReadUInt32());
-								row.SetValue(column, boolVal);
-								break;
-							case DataType.Long:
-								ulong longVal = reader.ReadUInt64();
-								row.SetValue(column, longVal);
-								break;
-							case DataType.String:
-								{
-									uint offset1 = reader.ReadUInt32();
-									uint offset2 = reader.ReadUInt32();
-									if (offset1 == 0)
-										reader.ReadUInt32();
-
-									uint offset3 = Math.Max(offset1, offset2);
-
-									// read string
-									long position = reader.BaseStream.Position;
-									reader.BaseStream.Position = headerSize + header.RecordOffset + offset3;
-
-									string stringVal = reader.ReadWideString();
-									row.SetValue(column, stringVal);
-
-									reader.BaseStream.Position = position;
+                GD.Print($"Table {path}: {sw.ElapsedMilliseconds} ms.");
+            }
 
 
-									break;
-								}
-						}
-					}
+			// records
+			long recordDataOffset = headerSize + header.RecordOffset;
+            const long div = 100;
+            ConcurrentBag<Dictionary<uint, DataRow>> dictList = new();
+            //Enumerable.Range(0, (int)header.RecordCount).Chunk(100).AsParallel().ForEach((chunk) => { });
+            Parallel.For(0L, header.RecordCount / div, (j) =>
+            {
+                Dictionary<uint, DataRow> localDict = new();
+                long max = Math.Min(header.RecordCount, (j+1) * div);
+                using (var stream = new MemoryStream(bytes))
+                using (var reader = new BinaryReader(stream, Encoding.Unicode))
+                for(long i = j * div; i < max; ++i)
+                {
+                    stream.Position = recordDataOffset + header.RecordSize * i;
+
+                    DataRow row = table.NewRow();
+                    foreach (string column in columnsOrdered)
+                    {
+                        switch (GetDataType(table.schema[column]))
+                        {
+                            case DataType.Integer:
+                                uint intVal = reader.ReadUInt32();
+                                row.SetValue(column, intVal);
+                                break;
+                            case DataType.Single:
+                                float floatVal = reader.ReadSingle();
+                                row.SetValue(column, floatVal);
+                                break;
+                            case DataType.Boolean:
+                                bool boolVal = Convert.ToBoolean(reader.ReadUInt32());
+                                row.SetValue(column, boolVal);
+                                break;
+                            case DataType.Long:
+                                ulong longVal = reader.ReadUInt64();
+                                row.SetValue(column, longVal);
+                                break;
+                            case DataType.String:
+                                {
+                                    uint offset1 = reader.ReadUInt32();
+                                    uint offset2 = reader.ReadUInt32();
+                                    if (offset1 == 0)
+                                        reader.ReadUInt32();
+
+                                    uint offset3 = Math.Max(offset1, offset2);
+
+                                    // read string
+                                    long position = reader.BaseStream.Position;
+                                    reader.BaseStream.Position = headerSize + header.RecordOffset + offset3;
+
+                                    string stringVal = reader.ReadWideString();
+                                    row.SetValue(column, stringVal);
+
+                                    reader.BaseStream.Position = position;
+
+
+                                    break;
+                                }
+                        }
+                    }
 
                     uint id = row.GetValue<uint>("ID");
                     row.SetValue("UID", id);
 
-					table.InsertRow(id, row);
-				}
+					localDict[id] = row;
+                }
+                dictList.Add(localDict);
+            });
 
-				// ignore lookup table
+			foreach (var dict in dictList)
+            {
+                foreach (var row in dict)
+                {
+                    table.InsertRow(row.Key, row.Value);
+                }
+            }
 
-			}
+            // ignore lookup table
+
+
+            GD.Print($"Table {path}: {sw.ElapsedMilliseconds} ms");
             return table;
 		}
 

@@ -120,7 +120,7 @@ public class DataTable
 		{
 			return rows;
 		}
-		return rows.UnionBy(fallbackTable.rows, k => !rows.Contains(k));
+		return rows.UnionBy(fallbackTable.rows, k => k.Key);
 	}
 }
 

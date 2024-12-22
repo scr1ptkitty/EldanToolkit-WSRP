@@ -39,7 +39,7 @@ public class ModelBoneHeader
 
 	public Int16 unk1;
 	public UInt16 unk2;
-    public UInt16 unk3;
+    public Int16 unk3;
     public UInt16 unk4;
 	public byte[] unk5;
 
@@ -47,7 +47,7 @@ public class ModelBoneHeader
 	{
 		unk1 = stream.ReadInt16(); // TODO id?
 		unk2 = stream.ReadUInt16(); // TODO flags?
-		unk3 = stream.ReadUInt16(); // TODO parent?
+		unk3 = stream.ReadInt16(); // TODO parent?
 		unk4 = stream.ReadUInt16(); // TODO mesh?
 
 		Rotation = new Matrix4x4(stream.ReadUInt8(), 0, stream.ReadUInt8(), 0, 0, 1, 0, 0, stream.ReadUInt8(), 0, stream.ReadUInt8(), 0, 0, 0, 0, 1);

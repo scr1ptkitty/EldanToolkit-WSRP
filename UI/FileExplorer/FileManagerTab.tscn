@@ -52,19 +52,16 @@ icon = ExtResource("2_qv4yx")
 
 [node name="AddToProject" type="Button" parent="VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 text = "Add To Project"
 
 [node name="RemoveFromProject" type="Button" parent="VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 text = "Remove From Project"
 
 [node name="LoadModel" type="Button" parent="VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 text = "Load Model"
 

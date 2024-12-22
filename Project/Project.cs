@@ -1,9 +1,5 @@
 using Godot;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Xml;
 
 namespace EldanToolkit.Project
 {
@@ -11,6 +7,7 @@ namespace EldanToolkit.Project
     {
         public ProjectFileSystem FileSystem {  get; private set; }
         public TableManager TableManager { get; private set; }
+        public LogSystem LogSystem { get; private set; }
 
         public string ProjectPath { get; private set; }
 
@@ -20,7 +17,10 @@ namespace EldanToolkit.Project
         }
 
         private Project()
-        {
+		{
+			FileSystem = new ProjectFileSystem(this);
+			TableManager = new TableManager(this);
+			LogSystem = new LogSystem(this);
         }
 
         public void Save()
@@ -41,13 +41,8 @@ namespace EldanToolkit.Project
         {
             ProjectPath = path;
 
-            FileSystem = new ProjectFileSystem();
             FileSystem.projectPath = path;
             FileSystem.MakeFolders();
-            AddChild(FileSystem);
-
-            TableManager = new TableManager();
-            AddChild(TableManager);
 
             Save();
             return true;
@@ -70,14 +65,10 @@ namespace EldanToolkit.Project
             if (!File.Exists(ProjectFilePath))
                 return false;
 
-            FileSystem = new ProjectFileSystem();
             FileSystem.projectPath = path;
-            AddChild(FileSystem);
+			FileSystem.MakeFolders();
 
-            TableManager = new TableManager();
-            AddChild(TableManager);
-
-            return true;
+			return true;
         }
 
         public void ConvertFiles()

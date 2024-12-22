@@ -1,5 +1,4 @@
 ﻿using EldanToolkit.Shared;
-using Godot;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -9,21 +8,19 @@ using WildStar.TextTable;
 
 namespace EldanToolkit.Project
 {
-    public partial class TableManager : Node
+    public class TableManager
     {
         private Project proj;
 
-        private string tablePath => $"{proj.FileSystem.projectFilesPath}/DB/";
 		private readonly Dictionary<GameTableName, Task<DataTable>> _tableTasks = new();
 		private readonly Dictionary<GameTableName, DataTable> _loadedTables = new();
 
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
-		public override void _Ready()
-		{
-			base._Ready();
-            proj = GetParent<Project>();
-		}
+        public TableManager(Project proj)
+        {
+            this.proj = proj;
+        }
 
 		public async Task<DataTable> GetTableAsync(GameTableName tableName)
         {

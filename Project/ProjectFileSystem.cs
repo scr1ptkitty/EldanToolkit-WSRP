@@ -1,7 +1,6 @@
 ﻿using Godot;
 using LibNexus.Core;
 using LibNexus.Files;
-using LibNexus.Files.IndexFiles;
 using LibNexus.Files.ModelFiles;
 using System;
 using System.Collections.Generic;
@@ -12,9 +11,10 @@ using System.Threading.Tasks;
 
 namespace EldanToolkit.Project
 {
-    [GlobalClass]
-    public partial class ProjectFileSystem : Node
-    {
+    public class ProjectFileSystem : IDisposable
+	{
+		private Project proj;
+		
         [Export(PropertyHint.GlobalDir)]
         public string projectPath;
 
@@ -24,7 +24,18 @@ namespace EldanToolkit.Project
         public string launcherPatchPath { get { return Path.Combine(projectPath, "LauncherPatch"); } }
         public string originalFilesPath { get { return Path.Combine(projectPath, "OriginalFiles"); } }
 
-        public void MakeFolders()
+		public ProjectFileSystem(Project proj)
+		{
+			this.proj = proj;
+			ArchivePathSubscription = ProgramSettings.ArchivePathObservable.Subscribe(path => ReadArchive());
+		}
+
+		public void Dispose()
+		{
+			ArchivePathSubscription.Dispose();
+		}
+
+		public void MakeFolders()
         {
             Directory.CreateDirectory(projectFilesPath);
 			Directory.CreateDirectory(originalFilesPath);
@@ -42,18 +53,6 @@ namespace EldanToolkit.Project
         CancellationTokenSource cts = new CancellationTokenSource();
 
         private IDisposable ArchivePathSubscription = null;
-
-		public override void _Ready()
-		{
-			base._Ready();
-			ArchivePathSubscription = ProgramSettings.ArchivePathObservable.Subscribe(path => ReadArchive());
-		}
-
-		public override void _ExitTree()
-		{
-			base._ExitTree();
-            ArchivePathSubscription.Dispose();
-		}
 
 		private void ReadArchive()
         {

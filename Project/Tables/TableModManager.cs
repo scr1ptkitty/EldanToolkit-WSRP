@@ -22,7 +22,7 @@ public class TableModManager
 			return table;
 		}
 		var baseTableTask = TableManager.GetTableAsync(tableName);
-		string modPath = Path.Combine(Project.FileSystem.projectPath, tableName.ToString() + ".tblmod");
+		string modPath = Path.Combine(Project.FileSystem.projectFilesPath, tableName.ToString() + ".tblmod");
 		if(File.Exists(modPath))
 		{
 			table = TableModLoader.Load(modPath);

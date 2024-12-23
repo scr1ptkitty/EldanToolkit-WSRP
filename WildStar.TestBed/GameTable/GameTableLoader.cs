@@ -119,15 +119,11 @@ namespace WildStar.GameTable
 			// records
 			long recordDataOffset = headerSize + header.RecordOffset;
             const long div = 100;
-            ConcurrentBag<Dictionary<uint, DataRow>> dictList = new();
-            //Enumerable.Range(0, (int)header.RecordCount).Chunk(100).AsParallel().ForEach((chunk) => { });
-            Parallel.For(0L, header.RecordCount / div, (j) =>
+            ConcurrentDictionary<uint, DataRow> dict = new();
+            Enumerable.Range(0, (int)header.RecordCount).AsParallel().ForEach((i) => 
             {
-                Dictionary<uint, DataRow> localDict = new();
-                long max = Math.Min(header.RecordCount, (j+1) * div);
                 using (var stream = new MemoryStream(bytes))
                 using (var reader = new BinaryReader(stream, Encoding.Unicode))
-                for(long i = j * div; i < max; ++i)
                 {
                     stream.Position = recordDataOffset + header.RecordSize * i;
 
@@ -179,17 +175,13 @@ namespace WildStar.GameTable
                     uint id = row.GetValue<uint>("ID");
                     row.SetValue("UID", id);
 
-					localDict[id] = row;
+                    dict[id] = row;
                 }
-                dictList.Add(localDict);
             });
 
-			foreach (var dict in dictList)
+            foreach (var row in dict)
             {
-                foreach (var row in dict)
-                {
-                    table.InsertRow(row.Key, row.Value);
-                }
+                table.InsertRow(row.Key, row.Value);
             }
 
             // ignore lookup table

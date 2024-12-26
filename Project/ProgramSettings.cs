@@ -26,9 +26,7 @@ namespace EldanToolkit.Project
 
     public static class ProgramSettings
 	{
-		public static string ArchivePath { get { return file.archivePath; } set { file.archivePath = value; _archivePathSubject.OnNext(value); QueueSave(); } }
-		private static readonly BehaviorSubject<string> _archivePathSubject = new BehaviorSubject<string>(null);
-        public static IObservable<string> ArchivePathObservable => _archivePathSubject.AsObservable().Throttle(TimeSpan.FromMilliseconds(500)).DistinctUntilChanged();
+        public static string ArchivePath { get { return file.archivePath; } set { file.archivePath = value; QueueSave(); } }
 
 		public static string NexusVaultPath { get { return file.nexusVaultPath; } set { file.nexusVaultPath = value; QueueSave(); } }
 
@@ -36,7 +34,15 @@ namespace EldanToolkit.Project
 
 		private static ProgramSettingsFile file;
 
-        public static void NoteProjectLoaded(string path)
+        public delegate void ProgramSettingsUpdatedEventHandler();
+        public static ProgramSettingsUpdatedEventHandler ProgramSettingsUpdated;
+
+		private static string appDataPath { get => Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EldanToolkit"); }
+		private static string appSettingsPath { get => Path.Join(appDataPath, "AppSettings.xml"); }
+
+		private static bool dirty = false;
+
+		public static void NoteProjectLoaded(string path)
         {
 			file.lastProjects.Remove(path);
 			file.lastProjects.Insert(0, path);
@@ -62,11 +68,6 @@ namespace EldanToolkit.Project
             return file.lastProjects[0];
         }
 
-        private static string appDataPath { get => Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EldanToolkit"); }
-        private static string appSettingsPath { get => Path.Join(appDataPath, "AppSettings.xml"); }
-
-        private static bool dirty = false;
-
         private static void Save()
         {
             if (!dirty) return;
@@ -79,7 +80,9 @@ namespace EldanToolkit.Project
 			XmlSerializer serializer = new XmlSerializer(typeof(ProgramSettingsFile));
 			serializer.Serialize(writer, file);
             dirty = false;
-        }
+
+			ProgramSettingsUpdated?.Invoke();
+		}
 
         private static void QueueSave()
         {
@@ -101,7 +104,7 @@ namespace EldanToolkit.Project
                 XmlSerializer serializer = new XmlSerializer(typeof(ProgramSettingsFile));
                 file = (ProgramSettingsFile)serializer.Deserialize(reader);
 
-                ArchivePath = ArchivePath; // Just to trigger the observable.
+                ProgramSettingsUpdated?.Invoke();
             }
             catch (Exception)
 			{

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace EldanToolkit.Project
 {
-    public class ProjectFileSystem : IDisposable
+    public class ProjectFileSystem
 	{
 		private Project proj;
 		
@@ -28,12 +28,7 @@ namespace EldanToolkit.Project
 		public ProjectFileSystem(Project proj)
 		{
 			this.proj = proj;
-			ArchivePathSubscription = ProgramSettings.ArchivePathObservable.Subscribe(path => ReadArchive());
-		}
-
-		public void Dispose()
-		{
-			ArchivePathSubscription.Dispose();
+            ProgramSettings.ProgramSettingsUpdated += ReadArchive;
 		}
 
 		public void MakeFolders()
@@ -53,8 +48,6 @@ namespace EldanToolkit.Project
 
         private List<ArchiveFilePair> archiveFiles = new List<ArchiveFilePair>();
         CancellationTokenSource cts = new CancellationTokenSource();
-
-        private IDisposable ArchivePathSubscription = null;
 
 		private void ReadArchive()
         {

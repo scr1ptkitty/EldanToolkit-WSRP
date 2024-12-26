@@ -17,7 +17,8 @@ public partial class MainUI : Control
 		tabBar = GetNode<MainTabs>("%TabBar");
 		tabHolder = GetNode<Control>("%TabHolder");
 
-		menuBar.SetupMenuBar(tabBar);
+        menuBar.Setup(tabBar);
+
 		tabBar.SetupTabs(tabHolder);
 	}
 

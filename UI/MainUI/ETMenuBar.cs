@@ -8,7 +8,7 @@ public partial class ETMenuBar : MenuBar
 	[Export]
 	public PackedScene ProjectSettingsUIScene;
 
-	private MainTabs tabs;
+	public MainTabs tabs;
 
 	private PopupMenu FileMenu;
 	private List<Action> FileMenuCallbacks;
@@ -16,9 +16,21 @@ public partial class ETMenuBar : MenuBar
 	private PopupMenu BuildMenu;
 	private List<Action> BuildMenuCallbacks;
 
-	public void SetupMenuBar(MainTabs tabs)
+	public void Setup(MainTabs tabs)
 	{
 		this.tabs = tabs;
+		ProgramSettings.ProgramSettingsUpdated += RefreshMenuBar;
+		RefreshMenuBar();
+	}
+
+	public void RefreshMenuBar()
+	{
+		if(FileMenu != null)
+		{
+			FileMenu.QueueFree();
+			RemoveChild(FileMenu);
+		}
+
 		FileMenu = new PopupMenu();
 		FileMenuCallbacks = new();
 		FileMenu.Name = "File";
@@ -50,7 +62,12 @@ public partial class ETMenuBar : MenuBar
 		});
 
 		/*FileMenu.AddItem("Recent Projects");
-        FileMenuCallbacks.Add(null);*/
+        FileMenuCallbacks.Add(null);
+		
+		if (FileMenu != null && RecentProjects != null)
+        {
+            FileMenu.SetItemSubmenuNode(RecentProjectsItemIndex, RecentProjects);
+        }*/
 
 		FileMenu.AddItem("Load Project");
 		FileMenuCallbacks.Add(() =>
@@ -81,10 +98,12 @@ public partial class ETMenuBar : MenuBar
 			settingsUI.Show();
 		});
 
-		/*if (FileMenu != null && RecentProjects != null)
-        {
-            FileMenu.SetItemSubmenuNode(RecentProjectsItemIndex, RecentProjects);
-        }*/
+
+		if (BuildMenu != null)
+		{
+			BuildMenu.QueueFree();
+			RemoveChild(BuildMenu);
+		}
 
 		BuildMenu = new PopupMenu();
 		BuildMenuCallbacks = new();
@@ -103,10 +122,13 @@ public partial class ETMenuBar : MenuBar
 			ProjectHolder.project.ConvertFiles();
 		});
 
-		BuildMenu.AddItem("Convert & Compile Project");
-		BuildMenuCallbacks.Add(() =>
+		if (ProgramSettings.IndexToolPath != null)
 		{
-			ProjectHolder.project.ConvertAndCompile();
-		});
+			BuildMenu.AddItem("Convert & Compile Project");
+			BuildMenuCallbacks.Add(() =>
+			{
+				ProjectHolder.project.ConvertAndCompile();
+			});
+		}
 	}
 }

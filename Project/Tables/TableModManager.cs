@@ -77,23 +77,30 @@ public class TableModManager
 		var files = Directory.GetFiles(src, "*.tbl", SearchOption.TopDirectoryOnly);
 		foreach(var file in files)
 		{
-			GameTableName tableName;
 			try
 			{
-				tableName = Enum.Parse<GameTableName>(Path.GetFileNameWithoutExtension(file));
-			}
-			catch
-			{
-				continue; // Not currently supported.
-			}
-			DataTable newTable = GameTableLoader.Load(file);
-			var rows = newTable.GetRowList().ToList();
-			var tblmod = GetTableMod(tableName);
-			tblmod.rows.Clear(); // just wipe it, we can't merge yet.
+				GameTableName tableName;
+				try
+				{
+					tableName = Enum.Parse<GameTableName>(Path.GetFileNameWithoutExtension(file));
+				}
+				catch
+				{
+					continue; // Not currently supported.
+				}
+				DataTable newTable = GameTableLoader.Load(file);
+				var rows = newTable.GetRowList().ToList();
+				var tblmod = GetTableMod(tableName);
+				tblmod.rows.Clear(); // just wipe it, we can't merge yet.
 
-			foreach(var row in newTable.rows)
+				foreach (var row in newTable.rows)
+				{
+					tblmod.InsertCopyIfDifferent(row.Key, row.Value);
+				}
+			}
+			catch (Exception ex)
 			{
-				tblmod.InsertCopyIfDifferent(row.Key, row.Value);
+
 			}
 		}
 		SaveMods();

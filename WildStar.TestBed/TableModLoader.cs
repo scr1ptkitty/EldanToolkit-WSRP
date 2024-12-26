@@ -7,6 +7,7 @@ using System.IO;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 
 public static class TableModLoader
 {
@@ -34,7 +35,14 @@ public static class TableModLoader
 				{
 					if (csv.TryGetField(column.Key, out string value))
 					{
-						newRow.SetValueRaw(column.Key, string.IsNullOrEmpty(value) ? null : Convert.ChangeType(value, column.Value));
+						if (value != null)
+						{
+							newRow.SetValueRaw(column.Key, Convert.ChangeType(value, column.Value));
+						}
+						else
+						{
+
+						}
 					}
 				}
 
@@ -48,7 +56,7 @@ public static class TableModLoader
 	public static void Write(DataTable table, string path)
 	{
 		using (var writer = new StreamWriter(path))
-		using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+		using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)))
 		{
 			// Write header
 			var schema = table.schema.ToList();
@@ -63,7 +71,16 @@ public static class TableModLoader
 				DataRow row = entry.Value;
 
 				foreach (var column in schema)
-					csv.WriteField(Convert.ChangeType(row.GetValue<object>(column.Key), column.Value));
+				{
+					if (row.HasValue(column.Key) || column.Key == "UID")
+					{
+						csv.WriteField(Convert.ChangeType(row.GetValue<object>(column.Key), column.Value).ToString(), table.schema[column.Key] == typeof(string));
+					}
+					else
+					{
+						csv.WriteField(null, false);
+					}
+				}
 				csv.NextRecord();
 			}
 		}

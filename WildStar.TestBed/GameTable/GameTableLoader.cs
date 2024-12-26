@@ -93,7 +93,8 @@ namespace WildStar.GameTable
                 if (columnStringTableOffset % 16 != 0)
                     columnStringTableOffset += columnStringTableOffset % 16;
 
-                foreach (TblColumn column in columns)
+				table.SetColumn("UID", typeof(uint));
+				foreach (TblColumn column in columns)
                 {
                     long columnNamePosition = columnStringTableOffset + column.NameOffset;
                     stream.Position = columnNamePosition;
@@ -107,7 +108,6 @@ namespace WildStar.GameTable
                     table.SetColumnUserData(columnName, "ColumnUnknown2", column.Unknown2);
                     table.SetColumnUserData(columnName, "ColumnUnknown3", column.Unknown3);
                 }
-                table.SetColumn("UID", typeof(uint));
                 table.SetUserData("ColumnsOrdered", columnsOrdered); // Store the proper order of the columns, for writing later.
 
                 GD.Print($"Table {path}: {sw.ElapsedMilliseconds} ms.");

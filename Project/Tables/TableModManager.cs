@@ -22,17 +22,30 @@ public class TableModManager
 			return table;
 		}
 		var baseTableTask = TableManager.GetTableAsync(tableName);
-		string modPath = Path.Combine(Project.FileSystem.projectFilesPath, tableName.ToString() + ".tblmod");
+		string modPath = GetPathFor(tableName);
 		if(File.Exists(modPath))
 		{
-			table = TableModLoader.Load(modPath);
-			table.fallbackTable = baseTableTask.Result;
+			table = TableModLoader.Load(modPath, baseTableTask.Result);
 		}
 		else
 		{
 			table = new DataTable(baseTableTask.Result);
 		}
+		table.TableName = tableName;
 		tableMods.Add(tableName, table);
 		return table;
+	}
+
+	public string GetPathFor(GameTableName tableName)
+	{
+		return Path.Combine(Project.FileSystem.projectFilesPath, $"DB/{tableName.ToString()}.tblmod");
+	}
+
+	public void SaveMods()
+	{
+		foreach(var mod in tableMods)
+		{
+			TableModLoader.Write(mod.Value, GetPathFor(mod.Key));
+		}
 	}
 }

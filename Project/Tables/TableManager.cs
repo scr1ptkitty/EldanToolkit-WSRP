@@ -71,11 +71,13 @@ namespace EldanToolkit.Project
             if (GameTableUtil.IsLocalization(name))
             {
                 tbl = TextTableLoader.Load(path);
+                tbl.TableName = name;
             }
             else
             {
                 tbl = GameTableLoader.Load(path);
-            }
+				tbl.TableName = name;
+			}
             _loadedTables[name] = tbl;
             return tbl;
 		}

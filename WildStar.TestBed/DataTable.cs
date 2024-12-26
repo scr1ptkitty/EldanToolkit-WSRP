@@ -1,9 +1,11 @@
-﻿using System;
+﻿using EldanToolkit.Shared;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 public class DataTable
 {
+	public GameTableName TableName { get; set; }
 	public Dictionary<string, Type> schema = new();
 	public Dictionary<uint, DataRow> rows = new();
 	public DataTable fallbackTable = null; // to allow a DataTable to store modifications to another table.
@@ -41,13 +43,20 @@ public class DataTable
 	// Get a row by index
 	public DataRow GetRow(uint index)
 	{
-		if (index >= 0 && index < rows.Count)
+		if (rows.TryGetValue(index, out var row))
 		{
-			return rows[index];
+			return row;
 		}
+
 		if (fallbackTable != null)
 		{
-			return fallbackTable.GetRow(index);
+			row = fallbackTable.GetRow(index);
+			if(row != null)
+			{
+				row = new DataRow(row); // new mod row
+				rows[index] = row;
+				return row;
+			}
 		}
 
 		throw new IndexOutOfRangeException($"Row index {index} is out of range.");
@@ -135,6 +144,22 @@ public class DataRow
 		columns = new Dictionary<string, object>();
 	}
 
+	public DataRow(DataRow other)
+	{
+		columns = new Dictionary<string, object>(other.columns);
+		schema = other.schema;
+	}
+
+	public void SetValueRaw(string columnName, object value)
+	{
+		if (!schema.TryGetValue(columnName, out var expectedType))
+		{
+			throw new InvalidOperationException($"Column '{columnName}' is not defined in the schema.");
+		}
+
+		columns[columnName] = Convert.ChangeType(value, expectedType);
+	}
+
 	// Set a value with schema enforcement
 	public void SetValue<T>(string columnName, T value)
 	{
@@ -169,5 +194,14 @@ public class DataRow
 		}
 
 		throw new KeyNotFoundException($"Column '{columnName}' not found.");
+	}
+
+	public Type GetType(string columnName)
+	{
+		if(schema.TryGetValue(columnName, out Type type))
+		{
+			return type;
+		}
+		throw new InvalidOperationException("No such column exists.");
 	}
 }

@@ -51,6 +51,15 @@ public class TableStructure
 
 		return new TableStructure(columnData.Description, columns);
 	}
+
+	public static TableStructure GetStructure(GameTableName tableName)
+	{
+		if (TableColumnDefs.TryGetValue(tableName, out TableStructure tableStructure))
+		{
+			return tableStructure;
+		}
+		return null;
+	}
 }
 
 [XmlRoot("TableData")]

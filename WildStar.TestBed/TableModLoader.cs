@@ -10,9 +10,9 @@ using System.Collections.Generic;
 
 public static class TableModLoader
 {
-	public static DataTable Load(string path)
+	public static DataTable Load(string path, DataTable baseTable)
 	{
-		DataTable table = new DataTable();
+		DataTable table = new DataTable(baseTable);
 		using (var reader = new StreamReader(path))
 		using (var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
 		{
@@ -34,7 +34,7 @@ public static class TableModLoader
 				{
 					if (csv.TryGetField(column.Key, out string value))
 					{
-						newRow.SetValue(column.Key, string.IsNullOrEmpty(value) ? null : Convert.ChangeType(value, column.Value));
+						newRow.SetValueRaw(column.Key, string.IsNullOrEmpty(value) ? null : Convert.ChangeType(value, column.Value));
 					}
 				}
 
@@ -45,13 +45,12 @@ public static class TableModLoader
 		return table;
 	}
 
-	public static void WriteModifiedRowsToCsv(DataTable table, string path)
+	public static void Write(DataTable table, string path)
 	{
 		using (var writer = new StreamWriter(path))
 		using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
 		{
 			// Write header
-			csv.WriteField("UID");
 			var schema = table.schema.ToList();
 			foreach (var column in schema)
 				csv.WriteField(column.Key);

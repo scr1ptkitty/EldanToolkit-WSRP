@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://dbsj5ycigpnya"]
 
 [ext_resource type="Script" path="res://UI/TableEditor/TableEditorTab.cs" id="1_tixjt"]
-[ext_resource type="PackedScene" uid="uid://diocs3hi5egiv" path="res://UI/Tables/TableCell.tscn" id="3_fpnay"]
+[ext_resource type="PackedScene" uid="uid://diocs3hi5egiv" path="res://UI/TableEditor/TableCell.tscn" id="3_fpnay"]
 [ext_resource type="PackedScene" uid="uid://bde0cloeunvm8" path="res://UI/TableEditor/EntryList.tscn" id="4_qevao"]
 
 [node name="VBoxContainer" type="VBoxContainer"]
@@ -60,3 +60,8 @@ vertical_scroll_mode = 0
 [node name="Breadcrumbs" type="HBoxContainer" parent="BottomBar/ScrollContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="SaveButton" type="Button" parent="BottomBar"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Save"

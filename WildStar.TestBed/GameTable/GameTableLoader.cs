@@ -162,7 +162,7 @@ namespace WildStar.GameTable
                                     reader.BaseStream.Position = headerSize + header.RecordOffset + offset3;
 
                                     string stringVal = reader.ReadWideString();
-                                    row.SetValue(column, stringVal);
+                                    row.SetValueRaw(column, stringVal);
 
                                     reader.BaseStream.Position = position;
 

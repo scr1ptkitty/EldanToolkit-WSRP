@@ -13,6 +13,7 @@ public partial class TableEditorTab : VBoxContainer
 	private Dictionary<int, TableViewReference> TableSelectorLookup = new();
 	private Container EntryEditor;
 	private EntryListElement TableEntryList;
+	private Button SaveButton;
 
 	private TableModManager mods;
 
@@ -34,6 +35,9 @@ public partial class TableEditorTab : VBoxContainer
 		EntryEditor = GetNode<Container>("%EntryEditor");
 		TableEntryList = GetNode<EntryListElement>("%EntryList");
 		TableEntryList.SelectionChanged += SelectEntry;
+
+		SaveButton = GetNode<Button>("%SaveButton");
+		SaveButton.Pressed += SaveTables;
 
 		UpdateBreadcrumbs();
 		UpdateTableSelector();
@@ -116,17 +120,37 @@ public partial class TableEditorTab : VBoxContainer
 
 		if (id == null || TableRef == null) return;
 
+		TableStructure structure = TableStructure.GetStructure(TableRef.TableName);
+
 		DataRow row = TableRef.GetRow(id.Value);
 
 		foreach(var column in TableRef.schema)
 		{
 			if (column.Key == "UID") continue;
-			Control cell = EntryCell.Instantiate<Control>();
-			Label varName = cell.GetNode<Label>("%VariableName");
-			varName.Text = column.Key;
-			LineEdit edit = cell.GetNode<LineEdit>("%VariableEdit");
-			edit.Text = row.GetValue<object>(column.Key).ToString();
-			EntryEditor.AddChild(cell);
+			var name = column.Key;
+			var value = row.GetValue<object>(column.Key).ToString();
+			structure.Columns.TryGetValue(name, out var columnStructure);
+			EntryEditor.AddChild(CreateVariableCell(id.Value, TableRef, name, value, columnStructure));
 		}
+	}
+
+	private Control CreateVariableCell(uint id, DataTable table, string name, string value, TableColumn type)
+	{
+		Control cell = EntryCell.Instantiate<Control>();
+		Label varName = cell.GetNode<Label>("%VariableName");
+		varName.Text = name;
+		LineEdit edit = cell.GetNode<LineEdit>("%VariableEdit");
+		edit.Text = value;
+		edit.TextChanged += (string newText) =>
+		{
+			DataRow row = TableRef.GetRow(id);
+			row.SetValueRaw(name, newText);
+		};
+		return cell;
+	}
+
+	public void SaveTables()
+	{
+		mods.SaveMods();
 	}
 }

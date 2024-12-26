@@ -17,12 +17,14 @@ public static class TableModLoader
 		using (var reader = new StreamReader(path))
 		using (var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
 		{
-			HasHeaderRecord = true
+			HasHeaderRecord = true,
 		}))
 		{
 			// Read the header to map columns
 			csv.Read();
 			csv.ReadHeader();
+
+			csv.Context.TypeConverterCache.AddConverter<string>(new StringConverter());
 
 			while (csv.Read())
 			{
@@ -37,11 +39,7 @@ public static class TableModLoader
 					{
 						if (value != null)
 						{
-							newRow.SetValueRaw(column.Key, Convert.ChangeType(value, column.Value));
-						}
-						else
-						{
-
+							newRow.SetValue(column.Key, Convert.ChangeType(value, column.Value));
 						}
 					}
 				}
@@ -58,6 +56,8 @@ public static class TableModLoader
 		using (var writer = new StreamWriter(path))
 		using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)))
 		{
+			csv.Context.TypeConverterCache.AddConverter<string>(new StringConverter());
+
 			// Write header
 			var schema = table.schema.ToList();
 			foreach (var column in schema)
@@ -83,6 +83,25 @@ public static class TableModLoader
 				}
 				csv.NextRecord();
 			}
+		}
+	}
+
+	public class StringConverter : CsvHelper.TypeConversion.StringConverter
+	{
+		public override object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
+		{
+			if (string.IsNullOrEmpty(text))
+				return null;
+			else
+				return base.ConvertFromString(text, row, memberMapData);
+		}
+
+		public override string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
+		{
+			if(value == null)
+				return "";
+			else
+				return base.ConvertToString(value, row, memberMapData);
 		}
 	}
 }

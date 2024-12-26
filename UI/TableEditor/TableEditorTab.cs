@@ -149,7 +149,7 @@ public partial class TableEditorTab : VBoxContainer
 		edit.TextChanged += (string newText) =>
 		{
 			DataRow row = TableRef.GetRow(id);
-			row.SetValueRaw(name, newText);
+			row.SetValue(name, newText);
 		};
 		return cell;
 	}

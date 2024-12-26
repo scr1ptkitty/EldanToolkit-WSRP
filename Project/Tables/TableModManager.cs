@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.XPath;
 using WildStar.GameTable;
+using WildStar.TextTable;
 
 public class TableModManager
 {
@@ -39,14 +41,9 @@ public class TableModManager
 		return table;
 	}
 
-	public string GetModPath()
-	{
-		return Path.Combine(Project.FileSystem.projectFilesPath, "DB/");
-	}
-
 	public string GetPathFor(GameTableName tableName)
 	{
-		return GetModPath() + tableName.ToString() + ".tblmod";
+		return Path.Combine(Project.FileSystem.projectFilesPath, GameTableUtil.GetDefaultFilePath(tableName) + "mod");
 	}
 
 	public void SaveMods()
@@ -59,36 +56,47 @@ public class TableModManager
 
 	public string[] ExportMods(string dest)
 	{
-		var files = Directory.GetFiles(GetModPath(), "*.tblmod", SearchOption.TopDirectoryOnly);
-		var filePaths = files.Select(f => (src: f, dest: Path.Combine(dest, Path.GetFileNameWithoutExtension(f) + ".tbl"))).ToArray();
+		var tables = Enum.GetValues<GameTableName>();
+		List<string> result = new();
 
-		foreach (var file in filePaths)
+		foreach (var tableName in tables)
 		{
-			GameTableName tableName = Enum.Parse<GameTableName>(Path.GetFileNameWithoutExtension(file.src));
-			DataTable table = GetTableMod(tableName);
-
-			GameTableLoader.Save(table, file.dest);
+			string srcPath = Path.Combine(Project.FileSystem.projectFilesPath, GameTableUtil.GetDefaultFilePath(tableName) + "mod");
+			if (File.Exists(srcPath))
+			{
+				string dstPath = Path.Combine(Project.FileSystem.processedFilesPath, GameTableUtil.GetDefaultFilePath(tableName));
+				DataTable table = GetTableMod(tableName);
+				GameTableLoader.Save(table, dstPath);
+				result.Add(dstPath);
+			}
 		}
-		return filePaths.Select(f => f.dest).ToArray();
+		return result.ToArray();
 	}
 
 	public void ImportModsFromTbl(string src)
 	{
-		var files = Directory.GetFiles(src, "*.tbl", SearchOption.TopDirectoryOnly);
-		foreach(var file in files)
+		var tables = Enum.GetValues<GameTableName>();
+		var searchPaths = new List<string> { "", "../" };
+		foreach (var tableName in tables)
 		{
 			try
 			{
-				GameTableName tableName;
-				try
+				string relativePath = GameTableUtil.GetDefaultFilePath(tableName);
+				string foundPath = searchPaths.Select(sp => $"{src}/{sp}{relativePath}").Where(f => File.Exists(f)).FirstOrDefault(string.Empty);
+				if (String.IsNullOrWhiteSpace(foundPath)) continue;
+				foundPath = Path.GetFullPath(foundPath);
+
+				bool localization = GameTableUtil.IsLocalization(tableName);
+				DataTable newTable = null;
+				if (localization)
 				{
-					tableName = Enum.Parse<GameTableName>(Path.GetFileNameWithoutExtension(file));
+					newTable = TextTableLoader.Load(foundPath);
 				}
-				catch
+				else
 				{
-					continue; // Not currently supported.
+					newTable = GameTableLoader.Load(foundPath);
 				}
-				DataTable newTable = GameTableLoader.Load(file);
+
 				var rows = newTable.GetRowList().ToList();
 				var tblmod = GetTableMod(tableName);
 				tblmod.rows.Clear(); // just wipe it, we can't merge yet.
@@ -103,6 +111,7 @@ public class TableModManager
 
 			}
 		}
+
 		SaveMods();
 	}
 }

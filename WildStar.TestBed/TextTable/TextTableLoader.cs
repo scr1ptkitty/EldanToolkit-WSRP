@@ -53,7 +53,7 @@ namespace WildStar.TextTable
                     DataRow row = table.NewRow();
                     row.SetValue("UID", id); // Just use the raw ID for any tables being loaded from disk.
                     row.SetValue("ID", id);
-                    row.SetValueRaw("Text", stringTable.GetString(bla));
+                    row.SetValue("Text", stringTable.GetString(bla));
                     table.InsertRow(id, row);
                 }
             }

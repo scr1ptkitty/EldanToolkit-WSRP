@@ -202,32 +202,21 @@ public class DataRow : IEquatable<DataRow>
 		return true;
 	}
 
-	public void SetValueRaw(string columnName, object value)
+	public void SetValue(string columnName, object value)
 	{
 		if (!schema.TryGetValue(columnName, out var expectedType))
 		{
 			throw new InvalidOperationException($"Column '{columnName}' is not defined in the schema.");
 		}
 
-		columns[columnName] = Convert.ChangeType(value, expectedType);
-	}
-
-	// Set a value with schema enforcement
-	public void SetValue<T>(string columnName, T value)
-	{
-		if (!schema.TryGetValue(columnName, out var expectedType))
-		{
-			throw new InvalidOperationException($"Column '{columnName}' is not defined in the schema.");
-		}
-
-		if (!expectedType.IsAssignableFrom(typeof(T)))
+		if (!expectedType.IsAssignableFrom(value.GetType()))
 		{
 			throw new InvalidCastException(
-				$"Cannot assign value of type {typeof(T).Name} to column '{columnName}' of type {expectedType.Name}."
+				$"Cannot assign value of type {value.GetType().Name} to column '{columnName}' of type {expectedType.Name}."
 			);
 		}
 
-		columns[columnName] = value!;
+		columns[columnName] = Convert.ChangeType(value, expectedType);
 	}
 
 	public object GetValueRaw(string columnName)

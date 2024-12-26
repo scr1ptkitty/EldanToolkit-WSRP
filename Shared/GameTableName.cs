@@ -4,7 +4,7 @@ namespace EldanToolkit.Shared
 {
 	public enum GameTableName
 	{
-		/*CharacterCustomization,
+		CharacterCustomization,
 		CharacterCustomizationLabel,
 		CharacterCustomizationSelection,
 		ColorShift,
@@ -12,10 +12,10 @@ namespace EldanToolkit.Shared
 		Creature2DisplayGroupEntry,
 		Creature2DisplayInfo,
 		Creature2OutfitGroupEntry,
-		Creature2OutfitInfo,*/
+		Creature2OutfitInfo,
 		DyeColorRamp,
 		Emotes,
-		/*HookAsset,
+		HookAsset,
 		HousingDecorInfo,
 		HousingDecorType,
 		HousingPlugItem,
@@ -28,7 +28,7 @@ namespace EldanToolkit.Shared
 		Spell4Base,
 		Spell4Effects,
 		UnitVehicle,
-		WorldLayer,*/
+		WorldLayer,
 		enUS,
 		frFR,
 		deDE

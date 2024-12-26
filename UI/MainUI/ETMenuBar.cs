@@ -8,12 +8,7 @@ public partial class ETMenuBar : MenuBar
 	[Export]
 	public PackedScene ProjectSettingsUIScene;
 
-	private List<PackedScene> wizards = new();
-
 	private MainTabs tabs;
-
-	[Export]
-	public PackedScene DecorColorShiftWizard;
 
 	private PopupMenu FileMenu;
 	private List<Action> FileMenuCallbacks;
@@ -91,9 +86,6 @@ public partial class ETMenuBar : MenuBar
             FileMenu.SetItemSubmenuNode(RecentProjectsItemIndex, RecentProjects);
         }*/
 
-		SetupWizardList();
-
-
 		BuildMenu = new PopupMenu();
 		BuildMenuCallbacks = new();
 		BuildMenu.Name = "Build";
@@ -116,25 +108,5 @@ public partial class ETMenuBar : MenuBar
 		{
 			ProjectHolder.project.ConvertAndCompile();
 		});
-	}
-
-	public void SetupWizardList()
-	{
-		PopupMenu pm = new PopupMenu();
-		pm.Name = "Wizards";
-		AddChild(pm);
-		AddWizard(pm, "Decor color-shift", DecorColorShiftWizard);
-
-		pm.Connect("index_pressed", Callable.From((int i) =>
-		{
-			Control wiz = wizards[i].Instantiate<Control>();
-			tabs.AddTab(wiz);
-		}));
-	}
-
-	public void AddWizard(PopupMenu menu, string name, PackedScene scene)
-	{
-		menu.AddItem(name);
-		wizards.Add(scene);
 	}
 }

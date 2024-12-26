@@ -39,7 +39,14 @@ public static class TableModLoader
 					{
 						if (value != null)
 						{
-							newRow.SetValue(column.Key, Convert.ChangeType(value, column.Value));
+							try
+							{
+								newRow.SetValue(column.Key, Convert.ChangeType(value, column.Value));
+							}
+							catch (Exception ex)
+							{
+
+							}
 						}
 					}
 				}
@@ -69,6 +76,11 @@ public static class TableModLoader
 			{
 				uint uid = entry.Key;
 				DataRow row = entry.Value;
+
+				if (table.TableName == EldanToolkit.Shared.GameTableName.Creature2 && uid >= 77000 )
+				{
+
+				}
 
 				foreach (var column in schema)
 				{

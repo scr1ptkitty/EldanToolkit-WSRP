@@ -196,7 +196,7 @@ public class DataRow : IEquatable<DataRow>
 		if (!other.columns.Keys.ToHashSet().SetEquals(columns.Keys.ToHashSet())) return false;
 		foreach (var column in columns)
 		{
-			if (!column.Equals(other.columns[column.Key])) return false;
+			if (!column.Value.Equals(other.columns[column.Key])) return false;
 		}
 
 		return true;

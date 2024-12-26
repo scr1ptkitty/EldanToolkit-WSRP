@@ -61,13 +61,20 @@ public class TableModManager
 
 		foreach (var tableName in tables)
 		{
-			string srcPath = Path.Combine(Project.FileSystem.projectFilesPath, GameTableUtil.GetDefaultFilePath(tableName) + "mod");
-			if (File.Exists(srcPath))
+			try
 			{
-				string dstPath = Path.Combine(Project.FileSystem.processedFilesPath, GameTableUtil.GetDefaultFilePath(tableName));
-				DataTable table = GetTableMod(tableName);
-				GameTableLoader.Save(table, dstPath);
-				result.Add(dstPath);
+				string srcPath = Path.Combine(Project.FileSystem.projectFilesPath, GameTableUtil.GetDefaultFilePath(tableName) + "mod");
+				if (File.Exists(srcPath))
+				{
+					string dstPath = Path.Combine(Project.FileSystem.processedFilesPath, GameTableUtil.GetDefaultFilePath(tableName));
+					DataTable table = GetTableMod(tableName);
+					GameTableLoader.Save(table, dstPath);
+					result.Add(dstPath);
+				}
+			}
+			catch (Exception ex)
+			{
+
 			}
 		}
 		return result.ToArray();

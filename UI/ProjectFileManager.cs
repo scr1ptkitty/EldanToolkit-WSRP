@@ -50,6 +50,7 @@ public partial class ProjectFileManager : Control
             }
         }));
         SetButtons();
+        ProgramSettings.ProgramSettingsUpdated += UpdateArchivePathWarning;
     }
 
     public void OnSelectedFileChanged(string filename, string folder, string importFile)
@@ -59,7 +60,6 @@ public partial class ProjectFileManager : Control
 
     protected void SetButtons()
     {
-        ArchivePathWarning.Visible = false;
         AddToProject.Visible = false;
         RemoveFromProject.Visible = false;
         LoadModel.Visible = false;
@@ -77,9 +77,14 @@ public partial class ProjectFileManager : Control
             }
         }
 
-        if (ProgramSettings.ArchivePath == null)
-        {
-            ArchivePathWarning.Visible = true;
-        }
+        UpdateArchivePathWarning();
     }
+
+    public void UpdateArchivePathWarning()
+    {
+		if (ProgramSettings.ArchivePath == null)
+		{
+			ArchivePathWarning.Visible = true;
+		}
+	}
 }

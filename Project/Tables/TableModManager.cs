@@ -1,7 +1,10 @@
 ﻿using EldanToolkit.Project;
 using EldanToolkit.Shared;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using WildStar.GameTable;
 
 public class TableModManager
 {
@@ -36,9 +39,14 @@ public class TableModManager
 		return table;
 	}
 
+	public string GetModPath()
+	{
+		return Path.Combine(Project.FileSystem.projectFilesPath, "DB/");
+	}
+
 	public string GetPathFor(GameTableName tableName)
 	{
-		return Path.Combine(Project.FileSystem.projectFilesPath, $"DB/{tableName.ToString()}.tblmod");
+		return GetModPath() + tableName.ToString() + ".tblmod";
 	}
 
 	public void SaveMods()
@@ -47,5 +55,47 @@ public class TableModManager
 		{
 			TableModLoader.Write(mod.Value, GetPathFor(mod.Key));
 		}
+	}
+
+	public string[] ExportMods(string dest)
+	{
+		var files = Directory.GetFiles(GetModPath(), "*.tblmod", SearchOption.TopDirectoryOnly);
+		var filePaths = files.Select(f => (src: f, dest: Path.Combine(dest, Path.GetFileNameWithoutExtension(f) + ".tbl"))).ToArray();
+
+		foreach (var file in filePaths)
+		{
+			GameTableName tableName = Enum.Parse<GameTableName>(Path.GetFileNameWithoutExtension(file.src));
+			DataTable table = GetTableMod(tableName);
+
+			GameTableLoader.Save(table, file.dest);
+		}
+		return filePaths.Select(f => f.dest).ToArray();
+	}
+
+	public void ImportModsFromTbl(string src)
+	{
+		var files = Directory.GetFiles(src, "*.tbl", SearchOption.TopDirectoryOnly);
+		foreach(var file in files)
+		{
+			GameTableName tableName;
+			try
+			{
+				tableName = Enum.Parse<GameTableName>(Path.GetFileNameWithoutExtension(file));
+			}
+			catch
+			{
+				continue; // Not currently supported.
+			}
+			DataTable newTable = GameTableLoader.Load(file);
+			var rows = newTable.GetRowList().ToList();
+			var tblmod = GetTableMod(tableName);
+			tblmod.rows.Clear(); // just wipe it, we can't merge yet.
+
+			foreach(var row in newTable.rows)
+			{
+				tblmod.InsertCopyIfDifferent(row.Key, row.Value);
+			}
+		}
+		SaveMods();
 	}
 }

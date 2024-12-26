@@ -1,4 +1,6 @@
-﻿using Godot;
+﻿using EldanToolkit.Project;
+using EldanToolkit.Shared;
+using Godot;
 using System;
 using System.IO;
 using System.Linq;
@@ -149,12 +151,8 @@ public class GameTableData : ConvertData
 		string DBPath = Path.GetDirectoryName(source);
 		string destPath = Path.GetDirectoryName(dest);
 		Directory.CreateDirectory(destPath);
-		var files = Directory.GetFiles(DBPath, "*.tbl", SearchOption.TopDirectoryOnly);
-		var filePaths = files.Select(f => (src: f, dest: Path.Combine(destPath, Path.GetFileName(f)))).ToArray();
-		foreach (var file in filePaths)
-		{
-			File.Copy(file.src, file.dest, true);
-		}
-		return filePaths.Select(f => f.dest).ToArray();
+
+		TableModManager tmm = new TableModManager(ProjectHolder.project);
+		return tmm.ExportMods(destPath);
 	}
 }

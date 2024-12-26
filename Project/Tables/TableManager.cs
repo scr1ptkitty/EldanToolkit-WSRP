@@ -60,36 +60,35 @@ namespace EldanToolkit.Project
 
         private async Task<DataTable> LoadTableAsync(GameTableName name)
 		{
-            string fullPath = $"{proj.FileSystem.projectFilesPath}/{GameTableUtil.GetDefaultFilePath(name)}";
-            if (!File.Exists(fullPath) && !AddToProject(name))
+            string fullPath = GetTableCacheLocation(name);
+            if (!File.Exists(fullPath) && !AddToCache(name))
             {
                 throw new FileNotFoundException($"Table file not found: {fullPath}");
             }
 
-            string path = Path.Combine(proj.FileSystem.projectFilesPath, GameTableUtil.GetDefaultFilePath(name));
 			DataTable tbl;
             if (GameTableUtil.IsLocalization(name))
             {
-                tbl = TextTableLoader.Load(path);
+                tbl = TextTableLoader.Load(fullPath);
                 tbl.TableName = name;
             }
             else
             {
-                tbl = GameTableLoader.Load(path);
+                tbl = GameTableLoader.Load(fullPath);
 				tbl.TableName = name;
 			}
             _loadedTables[name] = tbl;
             return tbl;
 		}
 
-        public bool AddToProject(GameTableName name)
+        public string GetTableCacheLocation(GameTableName name)
         {
-            string path = GameTableUtil.GetDefaultFilePath(name);
-            if(!proj.FileSystem.IsInProject(path))
-            {
-                return proj.FileSystem.AddtoProject(path, true);
-            }
-            return true;
+            return $"{proj.FileSystem.fileCachePath}/{GameTableUtil.GetDefaultFilePath(name)}";
+		}
+
+        public bool AddToCache(GameTableName name)
+        {
+            return proj.FileSystem.ExtractFileToLocation(GameTableUtil.GetDefaultFilePath(name), GetTableCacheLocation(name));
         }
     }
 }

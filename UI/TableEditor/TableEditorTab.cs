@@ -14,6 +14,7 @@ public partial class TableEditorTab : VBoxContainer
 	private Container EntryEditor;
 	private EntryListElement TableEntryList;
 	private Button SaveButton;
+	private Button ImportTblButton;
 
 	private TableModManager mods;
 
@@ -38,6 +39,9 @@ public partial class TableEditorTab : VBoxContainer
 
 		SaveButton = GetNode<Button>("%SaveButton");
 		SaveButton.Pressed += SaveTables;
+
+		ImportTblButton = GetNode<Button>("%ImportTblButton");
+		ImportTblButton.Pressed += SelectTblImportFolder;
 
 		UpdateBreadcrumbs();
 		UpdateTableSelector();
@@ -129,7 +133,8 @@ public partial class TableEditorTab : VBoxContainer
 			if (column.Key == "UID") continue;
 			var name = column.Key;
 			var value = row.GetValue<object>(column.Key).ToString();
-			structure.Columns.TryGetValue(name, out var columnStructure);
+			TableColumn columnStructure = null;
+			structure?.Columns.TryGetValue(name, out columnStructure);
 			EntryEditor.AddChild(CreateVariableCell(id.Value, TableRef, name, value, columnStructure));
 		}
 	}
@@ -152,5 +157,19 @@ public partial class TableEditorTab : VBoxContainer
 	public void SaveTables()
 	{
 		mods.SaveMods();
+	}
+
+	public void SelectTblImportFolder()
+	{
+		FileDialog fd = new FileDialog();
+		fd.FileMode = FileDialog.FileModeEnum.OpenDir;
+		fd.Access = FileDialog.AccessEnum.Filesystem;
+		fd.UseNativeDialog = true;
+		fd.Show();
+		string path = fd.CurrentFile;
+
+		if (path == null) return;
+
+		mods.ImportModsFromTbl(path);
 	}
 }

@@ -103,8 +103,6 @@ namespace WildStar.GameTable
 
                     columnsOrdered.Add(columnName); // Save the original version of the column name
 
-                    if (columnName.ToUpper() == "ID") { columnName = "ID"; } // To ensure that this field is consistent.
-
                     table.SetColumn(columnName, GetDataType(column.Type));
                     table.SetColumnUserData(columnName, "ColumnUnknown2", column.Unknown2);
                     table.SetColumnUserData(columnName, "ColumnUnknown3", column.Unknown3);
@@ -118,7 +116,6 @@ namespace WildStar.GameTable
 
 			// records
 			long recordDataOffset = headerSize + header.RecordOffset;
-            const long div = 100;
             ConcurrentDictionary<uint, DataRow> dict = new();
             Enumerable.Range(0, (int)header.RecordCount).AsParallel().ForEach((i) => 
             {
@@ -126,6 +123,8 @@ namespace WildStar.GameTable
                 using (var reader = new BinaryReader(stream, Encoding.Unicode))
                 {
                     stream.Position = recordDataOffset + header.RecordSize * i;
+
+                    uint id = 0;
 
                     DataRow row = table.NewRow();
                     foreach (string column in columnsOrdered)
@@ -135,6 +134,10 @@ namespace WildStar.GameTable
                             case DataType.Integer:
                                 uint intVal = reader.ReadUInt32();
                                 row.SetValue(column, intVal);
+                                if(column.ToUpper() == "ID")
+                                {
+                                    id = intVal;
+                                }
                                 break;
                             case DataType.Single:
                                 float floatVal = reader.ReadSingle();
@@ -172,7 +175,6 @@ namespace WildStar.GameTable
                         }
                     }
 
-                    uint id = row.GetValue<uint>("ID");
                     row.SetValue("UID", id);
 
                     dict[id] = row;
@@ -249,7 +251,7 @@ namespace WildStar.GameTable
                 for (int i = 0; i < header.MaxId; i++)
                     lookup[i] = -1;
 
-                var saveRows = table.rows.ToList();
+                var saveRows = table.GetRowList().ToList();
 
                 for(int i = 0; i < saveRows.Count; i++)
                 {
@@ -313,14 +315,15 @@ namespace WildStar.GameTable
         private static void WriteEntries(DataTable table, List<string> columnsOrdered, Header header, BinaryWriter writer)
         {
             uint entrySize = (uint)header.RecordSize;
-            var stringTableOffset = entrySize * table.rows.Count;
+			var saveRows = table.GetRowList().ToList();
+			var stringTableOffset = entrySize * saveRows.Count;
 
             Dictionary<string, uint> stringLookup = new Dictionary<string, uint>();
 
             using (var stringTableStream = new MemoryStream())
             using (var stringTableWriter = new BinaryWriter(stringTableStream))
             {
-                foreach (DataRow row in table.rows.Values)
+                foreach (var row in saveRows)
                 {
                     long start = writer.BaseStream.Position;
                     foreach (var column in columnsOrdered)
@@ -328,19 +331,19 @@ namespace WildStar.GameTable
                         switch (GetDataType(table.schema[column]))
                         {
                             case DataType.Integer:
-                                writer.Write(row.GetValue<uint>(column));
+                                writer.Write(row.Value.GetValue<uint>(column));
                                 break;
                             case DataType.Single:
-                                writer.Write(row.GetValue<float>(column));
+                                writer.Write(row.Value.GetValue<float>(column));
                                 break;
                             case DataType.Boolean:
-                                writer.Write(Convert.ToUInt32(row.GetValue<bool>(column)));
+                                writer.Write(Convert.ToUInt32(row.Value.GetValue<bool>(column)));
                                 break;
                             case DataType.Long:
-                                writer.Write(row.GetValue<ulong>(column));
+                                writer.Write(row.Value.GetValue<ulong>(column));
                                 break;
                             case DataType.String:
-                                string cell = row.GetValue<string>(column);
+                                string cell = row.Value.GetValue<string>(column);
                                 long a = (writer.BaseStream.Position - start) % 8;
                                 if (a != 0)
                                 {

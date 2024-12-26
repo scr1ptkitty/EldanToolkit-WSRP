@@ -8,7 +8,7 @@ public class DataTable
 	public GameTableName TableName { get; set; }
 	public Dictionary<string, Type> schema = new();
 	public Dictionary<uint, DataRow> rows = new();
-	public DataTable fallbackTable = null; // to allow a DataTable to store modifications to another table.
+	private DataTable fallbackTable = null; // to allow a DataTable to store modifications to another table.
 	public string Name;
 	private Dictionary<string, object> extraData = new();
 	private Dictionary<string, Dictionary<string, object>> columnExtraData = new();
@@ -21,6 +21,8 @@ public class DataTable
 	{
 		schema = new Dictionary<string, Type>(fallback.schema);
 		fallbackTable = fallback;
+		Name = fallback.Name;
+		TableName = fallback.TableName;
 	}
 
 	public void SetColumn(string name, Type type)
@@ -40,8 +42,29 @@ public class DataTable
 		rows.Add(id, row);
 	}
 
+	public void InsertCopyIfDifferent(uint id, DataRow row)
+	{
+		// If we have a row, just modify it.
+		if (rows.ContainsKey(id))
+		{
+			rows[id] = new DataRow(row); // copy
+			return;
+		}
+		// If we don't have a row, but the fallback table has one, check if it's different.
+		if (fallbackTable != null && fallbackTable.rows.TryGetValue(id, out DataRow oldRow))
+		{
+			if (row.Equals(oldRow))
+			{
+				return;
+			}
+			rows[id] = new DataRow(row);
+		}
+		// We don't have the row in the fallback table either, add it to mods.
+		rows[id] = new DataRow(row);
+	}
+
 	// Get a row by index
-	public DataRow GetRow(uint index)
+	public DataRow GetRow(uint index, bool createMod = false)
 	{
 		if (rows.TryGetValue(index, out var row))
 		{
@@ -53,8 +76,11 @@ public class DataTable
 			row = fallbackTable.GetRow(index);
 			if(row != null)
 			{
-				row = new DataRow(row); // new mod row
-				rows[index] = row;
+				if (createMod)
+				{
+					row = new DataRow(row); // new mod row
+					rows[index] = row;
+				}
 				return row;
 			}
 		}
@@ -113,7 +139,7 @@ public class DataTable
 		if(!columnExtraData.TryGetValue(column, out var columnData))
 		{
 			columnData = new();
-			extraData[column] = columnData;
+			columnExtraData[column] = columnData;
 		}
 		columnData[key] = data;
 	}
@@ -133,7 +159,7 @@ public class DataTable
 	}
 }
 
-public class DataRow
+public class DataRow : IEquatable<DataRow>
 {
 	private Dictionary<string, object> columns;
 	private Dictionary<string, Type> schema;
@@ -148,6 +174,19 @@ public class DataRow
 	{
 		columns = new Dictionary<string, object>(other.columns);
 		schema = other.schema;
+	}
+
+	public bool Equals(DataRow other)
+	{
+		if (other == null) return false;
+
+		if (!other.columns.Keys.ToHashSet().SetEquals(columns.Keys.ToHashSet())) return false;
+		foreach (var column in columns)
+		{
+			if (!column.Equals(other.columns[column.Key])) return false;
+		}
+
+		return true;
 	}
 
 	public void SetValueRaw(string columnName, object value)

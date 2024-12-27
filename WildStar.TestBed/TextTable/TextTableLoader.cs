@@ -16,6 +16,7 @@ namespace WildStar.TextTable
 		{
             DataTable table = new DataTable();
             table.SetColumn("UID", typeof(uint));
+			table.SetColumn("EditorDescription", typeof(string));
 			table.SetColumn("ID", typeof(uint));
 			table.SetColumn("Text", typeof(string));
 

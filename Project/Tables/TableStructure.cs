@@ -7,15 +7,67 @@ using EldanToolkit.Shared;
 
 public class TableStructure
 {
-	public TableStructure(string description, Dictionary<string, TableColumn> columns)
+	public TableStructure(TableDataXML xml)
 	{
-		Description = description;
-		Columns = columns;
+		Description = xml.Description;
+		Columns = new();
+		foreach (var c in xml.Columns)
+		{
+			Columns[c.Name] = c;
+		}
+		DefaultEditorDescriptionColumn = xml.DefaultEditorDescriptionColumn;
+	}
+
+	public TableStructure(GameTableName tableName)
+	{
+		Description = tableName.ToString();
+		Columns = new(); // Undefined columns just get a default.
+		DefaultEditorDescriptionColumn = "Description";
 	}
 
 	public string Description;
 	public Dictionary<string, TableColumn> Columns;
+	public string DefaultEditorDescriptionColumn;
 
+	public string GetEntryDescription(DataRow row, TableDataSet set)
+	{
+		string EntryDescription = row.GetValue<string>("EditorDescription");
+		if (EntryDescription == null)
+		{
+			EntryDescription = GetFieldPreview(row, DefaultEditorDescriptionColumn, set);
+		}
+		return EntryDescription;
+	}
+
+	public string GetFieldPreview(DataRow row, string column, TableDataSet set)
+	{
+		if (Columns.TryGetValue(column, out TableColumn tableColumn))
+		{
+			GameTableName refTable;
+			string refColumn;
+			switch (tableColumn.Type)
+			{
+				case TableColumn.ColumnType.Reference:
+					refTable = tableColumn.RefTable.Value;
+					refColumn = tableColumn.RefColumn;
+					break;
+				case TableColumn.ColumnType.LocalizedTextID:
+					refTable = GameTableName.enUS;
+					refColumn = "Text";
+					break;
+				default:
+					return null;
+			}
+			DataTable rt = set.GetTable(refTable);
+			uint refID = row.GetValue<uint>(column);
+			DataRow refRow = rt.GetRow(refID);
+			TableStructure refStructure = GetStructure(refTable);
+			return refStructure.GetFieldPreview(refRow, refColumn, set) ?? refRow.GetValueRaw(refColumn).ToString();
+		}
+		return null;
+	}
+
+	// static stuff
 	public static Dictionary<GameTableName, TableStructure> TableColumnDefs { get; private set; } = LoadAllColumns();
 
 	public static Dictionary<GameTableName, TableStructure> LoadAllColumns()
@@ -43,13 +95,7 @@ public class TableStructure
 		using var stream = new FileStream(filePath, FileMode.Open);
 		var columnData = (TableDataXML)serializer.Deserialize(stream);
 
-		var columns = new Dictionary<string, TableColumn>();
-		foreach (var column in columnData.Columns)
-		{
-			columns[column.Name] = column;
-		}
-
-		return new TableStructure(columnData.Description, columns);
+		return new TableStructure(columnData);
 	}
 
 	public static TableStructure GetStructure(GameTableName tableName)
@@ -58,7 +104,9 @@ public class TableStructure
 		{
 			return tableStructure;
 		}
-		return null;
+		tableStructure = new TableStructure(tableName);
+		TableColumnDefs[tableName] = tableStructure;
+		return tableStructure;
 	}
 }
 
@@ -67,6 +115,9 @@ public class TableDataXML
 {
 	[XmlElement("Description")]
 	public string Description { get; set; }
+
+	[XmlElement("DefaultEditorDescriptionColumn")]
+	public string DefaultEditorDescriptionColumn { get; set; } // The column to use to fill in the displayed name of entries.
 
 	[XmlElement("Column")]
 	public List<TableColumn> Columns { get; set; } = new List<TableColumn>();
@@ -87,7 +138,7 @@ public class TableColumn
 	public GameTableName? RefTable { get; set; }
 
     [XmlElement("RefColumn")]
-    public int RefColumn { get; set; }
+    public string RefColumn { get; set; }
 
     [XmlElement("Tooltip")]
     public string Tooltip { get; set; }

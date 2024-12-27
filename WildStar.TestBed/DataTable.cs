@@ -234,11 +234,11 @@ public class DataRow : IEquatable<DataRow>
 		object val = GetValueRaw(columnName);
 		if (val == null)
 		{
-			throw new KeyNotFoundException($"Column '{columnName}' not found.");
+			return default;
 		}
-		if (val is T typedValue)
+		if (typeof(T).IsAssignableFrom(val.GetType()))
 		{
-			return typedValue;
+			return (T) val;
 		}
 		else
 		{

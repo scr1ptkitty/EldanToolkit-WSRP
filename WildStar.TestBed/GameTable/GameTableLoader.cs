@@ -94,7 +94,8 @@ namespace WildStar.GameTable
                     columnStringTableOffset += columnStringTableOffset % 16;
 
 				table.SetColumn("UID", typeof(uint));
-				foreach (TblColumn column in columns)
+                table.SetColumn("EditorDescription", typeof(string));
+                foreach (TblColumn column in columns)
                 {
                     long columnNamePosition = columnStringTableOffset + column.NameOffset;
                     stream.Position = columnNamePosition;

@@ -1,3 +1,4 @@
+using EldanToolkit.Shared;
 using Godot;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,8 @@ public partial class EntryListElement : VBoxContainer
 	public PackedScene EntryListButton;
 
 	public List<KeyValuePair<uint, DataRow>> OrderedList = new();
+	public TableDataSet DataSet;
+	public GameTableName TableName;
 
 	private (uint, uint) CurrentPage = (0, 0);
 	private const int EntriesPerPage = 10;
@@ -91,10 +94,16 @@ public partial class EntryListElement : VBoxContainer
 		CurrentPage = (entriesToShow.First().Key, entriesToShow.Last().Key);
 
 
+		TableStructure ts = TableStructure.GetStructure(TableName);
+
 		foreach (var entry in entriesToShow)
 		{
 			Button entryButton = EntryListButton.Instantiate<Button>();
-			entryButton.Text = $"{entry.Key}";
+			string preview = ts.GetEntryDescription(entry.Value, DataSet);
+			if (!string.IsNullOrWhiteSpace(preview))
+				entryButton.Text = $"{entry.Key}: {preview}";
+			else
+				entryButton.Text = $"{entry.Key}";
 			entryButton.ToggleMode = true;
 			entryButton.ButtonGroup = buttonGroup;
 			entryButton.Pressed += () => SelectionChanged?.Invoke(entry.Key);

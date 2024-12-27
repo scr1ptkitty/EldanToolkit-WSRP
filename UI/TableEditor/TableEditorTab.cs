@@ -100,8 +100,10 @@ public partial class TableEditorTab : VBoxContainer
 		CurrentTable = table;
 		if (table.Type == TableViewReference.TableViewType.CustomView) return;
 
-		TableRef = mods.GetTableMod(table.NameEnum);
+		TableRef = mods.GetTable(table.NameEnum);
 
+		TableEntryList.DataSet = mods;
+		TableEntryList.TableName = table.NameEnum;
 		UpdateListCache();
 		TableEntryList.GotoPage(0, true);
 	}
@@ -132,7 +134,7 @@ public partial class TableEditorTab : VBoxContainer
 		{
 			if (column.Key == "UID") continue;
 			var name = column.Key;
-			var value = row.GetValue<object>(column.Key).ToString();
+			var value = row.GetValue<object>(column.Key)?.ToString() ?? "";
 			TableColumn columnStructure = null;
 			structure?.Columns.TryGetValue(name, out columnStructure);
 			EntryEditor.AddChild(CreateVariableCell(id.Value, TableRef, name, value, columnStructure));

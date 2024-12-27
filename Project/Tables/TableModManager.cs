@@ -8,7 +8,7 @@ using System.Xml.XPath;
 using WildStar.GameTable;
 using WildStar.TextTable;
 
-public class TableModManager
+public class TableModManager : TableDataSet
 {
 	public TableManager TableManager { get; private set; }
 	public Project Project { get; private set; }
@@ -20,7 +20,7 @@ public class TableModManager
 		TableManager = project.TableManager;
 	}
 
-	public DataTable GetTableMod(GameTableName tableName)
+	public DataTable GetTable(GameTableName tableName)
 	{
 		if(tableMods.TryGetValue(tableName, out DataTable table))
 		{
@@ -67,7 +67,7 @@ public class TableModManager
 				if (File.Exists(srcPath))
 				{
 					string dstPath = Path.Combine(Project.FileSystem.processedFilesPath, GameTableUtil.GetDefaultFilePath(tableName));
-					DataTable table = GetTableMod(tableName);
+					DataTable table = GetTable(tableName);
 					GameTableLoader.Save(table, dstPath);
 					result.Add(dstPath);
 				}
@@ -105,7 +105,7 @@ public class TableModManager
 				}
 
 				var rows = newTable.GetRowList().ToList();
-				var tblmod = GetTableMod(tableName);
+				var tblmod = GetTable(tableName);
 				tblmod.rows.Clear(); // just wipe it, we can't merge yet.
 
 				foreach (var row in newTable.rows)

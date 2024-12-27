@@ -32,7 +32,7 @@ public class TableStructure
 	public string GetEntryDescription(DataRow row, TableDataSet set)
 	{
 		string EntryDescription = row.GetValue<string>("EditorDescription");
-		if (EntryDescription == null)
+		if (string.IsNullOrWhiteSpace(EntryDescription))
 		{
 			EntryDescription = GetFieldPreview(row, DefaultEditorDescriptionColumn, set);
 		}

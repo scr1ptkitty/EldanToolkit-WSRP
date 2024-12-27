@@ -26,7 +26,7 @@ public class TableStructure
 	}
 
 	public string Description;
-	public Dictionary<string, TableColumn> Columns;
+	private Dictionary<string, TableColumn> Columns;
 	public string DefaultEditorDescriptionColumn;
 
 	public string GetEntryDescription(DataRow row, TableDataSet set)
@@ -34,9 +34,19 @@ public class TableStructure
 		string EntryDescription = row.GetValue<string>("EditorDescription");
 		if (string.IsNullOrWhiteSpace(EntryDescription))
 		{
-			EntryDescription = GetFieldPreview(row, DefaultEditorDescriptionColumn, set);
+			EntryDescription = GetFieldPreview(row, DefaultEditorDescriptionColumn, set) ?? row.GetValueRaw(DefaultEditorDescriptionColumn)?.ToString();
 		}
 		return EntryDescription;
+	}
+
+	public string GetEntryDescriptionFormatted(DataRow row, TableDataSet set)
+	{
+		uint uid = row.GetValue<uint>("UID");
+		string preview = GetEntryDescription(row, set);
+		if (string.IsNullOrWhiteSpace(preview))
+			return $"{uid}";
+		else
+			return $"{uid}: {preview}";
 	}
 
 	public string GetFieldPreview(DataRow row, string column, TableDataSet set)
@@ -65,6 +75,15 @@ public class TableStructure
 			return refStructure.GetFieldPreview(refRow, refColumn, set) ?? refRow.GetValueRaw(refColumn).ToString();
 		}
 		return null;
+	}
+
+	public TableColumn GetColumn(string column)
+	{
+		if (Columns.TryGetValue(column, out TableColumn columnData))
+			return columnData;
+		columnData = new TableColumn();
+		Columns[column] = columnData;
+		return columnData;
 	}
 
 	// static stuff

@@ -99,11 +99,7 @@ public partial class EntryListElement : VBoxContainer
 		foreach (var entry in entriesToShow)
 		{
 			Button entryButton = EntryListButton.Instantiate<Button>();
-			string preview = ts.GetEntryDescription(entry.Value, DataSet);
-			if (!string.IsNullOrWhiteSpace(preview))
-				entryButton.Text = $"{entry.Key}: {preview}";
-			else
-				entryButton.Text = $"{entry.Key}";
+			entryButton.Text = ts.GetEntryDescriptionFormatted(entry.Value, DataSet);
 			entryButton.ToggleMode = true;
 			entryButton.ButtonGroup = buttonGroup;
 			entryButton.Pressed += () => SelectionChanged?.Invoke(entry.Key);

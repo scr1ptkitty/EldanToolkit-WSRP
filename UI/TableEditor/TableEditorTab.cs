@@ -1,7 +1,9 @@
 using EldanToolkit.Project;
+using EldanToolkit.Shared;
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using WildStar.TestBed;
 
@@ -133,26 +135,14 @@ public partial class TableEditorTab : VBoxContainer
 		foreach(var column in TableRef.schema)
 		{
 			if (column.Key == "UID") continue;
-			var name = column.Key;
-			var value = row.GetValue<object>(column.Key)?.ToString() ?? "";
-			TableColumn columnStructure = null;
-			structure?.Columns.TryGetValue(name, out columnStructure);
-			EntryEditor.AddChild(CreateVariableCell(id.Value, TableRef, name, value, columnStructure));
+			EntryEditor.AddChild(CreateVariableCell(id.Value, mods, CurrentTable.NameEnum, column.Key));
 		}
 	}
 
-	private Control CreateVariableCell(uint id, DataTable table, string name, string value, TableColumn type)
+	private Control CreateVariableCell(uint id, TableDataSet set, GameTableName tableName, string column)
 	{
-		Control cell = EntryCell.Instantiate<Control>();
-		Label varName = cell.GetNode<Label>("%VariableName");
-		varName.Text = name;
-		LineEdit edit = cell.GetNode<LineEdit>("%VariableEdit");
-		edit.Text = value;
-		edit.TextChanged += (string newText) =>
-		{
-			DataRow row = TableRef.GetRow(id);
-			row.SetValue(name, newText);
-		};
+		TableCell cell = EntryCell.Instantiate<TableCell>();
+		cell.SetValues(id, set, tableName, column);
 		return cell;
 	}
 

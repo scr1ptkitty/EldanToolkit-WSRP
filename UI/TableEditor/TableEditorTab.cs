@@ -116,12 +116,12 @@ public partial class TableEditorTab : VBoxContainer
 		TableEntryList.DataSet = Project.TableMods;
 		TableEntryList.TableName = table.NameEnum;
 		UpdateListCache();
-		TableEntryList.GotoPage(0, true);
 	}
 
 	private void UpdateListCache()
 	{
-		TableEntryList.OrderedList = TableRef.GetRowList().OrderBy(r => r.Key).ToList(); // Good place to add any filters.
+		// Good place to add any filters.
+		TableEntryList.SetList(TableRef.GetRowList().OrderBy(r => r.Key));
 	}
 
 	public void SelectEntry(uint? id)

@@ -46,6 +46,7 @@ size_flags_horizontal = 3
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 3.0
+horizontal_scroll_mode = 0
 
 [node name="EntryEditor" type="VBoxContainer" parent="TableEditor/EntryScroll"]
 unique_name_in_owner = true

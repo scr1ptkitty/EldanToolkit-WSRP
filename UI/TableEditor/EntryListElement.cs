@@ -13,13 +13,8 @@ public partial class EntryListElement : VBoxContainer
 	public TableDataSet DataSet;
 	public GameTableName TableName;
 
-	private (uint, uint) CurrentPage = (0, 0);
-	private const int EntriesPerPage = 10;
-	private Button PrevPageButton;
-	private Button NextPageButton;
-
 	private ButtonGroup buttonGroup;
-	private Container EntryList;
+	public LongButtonListControl EntryList;
 
 	public delegate void SelectionChangedEvent(uint? id);
 	public SelectionChangedEvent SelectionChanged;
@@ -28,83 +23,25 @@ public partial class EntryListElement : VBoxContainer
 	{
 		base._Ready();
 
-		PrevPageButton = GetNode<Button>("%PrevPageButton");
-		PrevPageButton.Pressed += PrevPage;
-		NextPageButton = GetNode<Button>("%NextPageButton");
-		NextPageButton.Pressed += NextPage;
-
-		EntryList = GetNode<Container>("%EntryList");
-
 		buttonGroup = new ButtonGroup();
+
+		EntryList = GetNode<LongButtonListControl>("%EntryList");
 	}
 
-	public void NextPage()
+	public void SetList(IEnumerable<KeyValuePair<uint, DataRow>> list)
 	{
-		GotoPage(CurrentPage.Item2, true);
-	}
-
-	public void PrevPage()
-	{
-		GotoPage(CurrentPage.Item1, false);
-	}
-
-	public void GotoPage(uint id, bool forward)
-	{
-		foreach (var item in EntryList.GetChildren())
-		{
-			item.QueueFree();
-			EntryList.RemoveChild(item);
-		}
-
-		var list = OrderedList.AsEnumerable();
-		if (!forward)
-		{
-			list = list.Reverse();
-		}
-		var index = OrderedList.FindIndex(r => r.Key == id);
-		if (index == -1)
-		{
-			index = 0;
-		}
-
-		IEnumerable<KeyValuePair<uint, DataRow>> entriesToShow;
-		if (forward)
-		{
-			entriesToShow = OrderedList.Skip(index + 1).Take(EntriesPerPage);
-			int got = entriesToShow.Count();
-			int missing = EntriesPerPage - got;
-			if (missing > 0)
-			{
-				var stuffToAdd = OrderedList.SkipLast(got).TakeLast(missing);
-				entriesToShow = stuffToAdd.Concat(entriesToShow);
-			}
-		}
-		else
-		{
-			entriesToShow = OrderedList.Take(index).TakeLast(EntriesPerPage);
-			int got = entriesToShow.Count();
-			int missing = EntriesPerPage - got;
-			if (missing > 0)
-			{
-				var stuffToAdd = OrderedList.Skip(got).Take(missing);
-				entriesToShow = entriesToShow.Concat(stuffToAdd);
-			}
-		}
-
-		CurrentPage = (entriesToShow.First().Key, entriesToShow.Last().Key);
-
-
 		TableStructure ts = TableStructure.GetStructure(TableName);
 
-		foreach (var entry in entriesToShow)
+		var objectList = list.Cast<object>().ToList();
+		EntryList.LoadData(objectList, (control, entry, id) =>
 		{
-			Button entryButton = EntryListButton.Instantiate<Button>();
-			entryButton.Text = ts.GetEntryDescriptionFormatted(entry.Value, DataSet);
-			entryButton.ToggleMode = true;
-			entryButton.ButtonGroup = buttonGroup;
-			entryButton.Pressed += () => SelectionChanged?.Invoke(entry.Key);
+			var pair = (KeyValuePair<uint, DataRow>)entry;
+			var button = control as Button;
 
-			EntryList.AddChild(entryButton);
-		}
+			button.Text = ts.GetEntryDescriptionFormatted(pair.Value, DataSet);
+			button.ToggleMode = true;
+			button.ButtonGroup = buttonGroup;
+			button.Pressed += () => SelectionChanged?.Invoke(pair.Key);
+		});
 	}
 }

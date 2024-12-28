@@ -27,8 +27,9 @@ namespace EldanToolkit.Project
 
 		public ProjectFileSystem(Project proj)
 		{
-			this.CurrentProject = proj;
+			CurrentProject = proj;
             ProgramSettings.ProgramSettingsUpdated += ReadArchive;
+            ReadArchive();
 			ProjectHolder.ProjectObservable.Subscribe((proj) => CurrentProject = proj);
 		}
 
@@ -339,7 +340,7 @@ namespace EldanToolkit.Project
             task = Task.Run(() => FileSystem.Create(progress, index, hasArchive, null, token));
             task.ContinueWith((t) =>
             {
-                Callable.From(() => ProjectHolder.FileSystemLoadEvent()).CallDeferred();
+                Callable.From(() => Events.FileSystemLoaded?.Invoke()).CallDeferred();
             });
         }
 

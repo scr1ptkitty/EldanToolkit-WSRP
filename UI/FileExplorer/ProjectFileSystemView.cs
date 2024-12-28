@@ -36,6 +36,7 @@ public partial class ProjectFileSystemView : Control
     public override void _Ready()
     {
 		ProjectHolder.ProjectObservable.Subscribe(ProjectLoaded);
+		Events.FileSystemLoaded += Refresh;
 		Refresh();
     }
 
@@ -74,6 +75,8 @@ public partial class ProjectFileSystemView : Control
 			fe.AddThemeColorOverride("font_color", pfs.IsInProject($"{currentFolder}{fileName}") ? FileInProjectColor : DefaultFileColor);
             fileList.AddChild(fe);
         }
+
+		needsRefresh = false;
     }
 
 	public FileType GetFileType(string fileName)

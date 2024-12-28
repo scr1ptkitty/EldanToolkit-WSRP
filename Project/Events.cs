@@ -4,8 +4,8 @@ namespace EldanToolkit.Project
 {
     public static class Events
     {
-        public delegate void ProjectLoadedEventHandler(Project project);
-		public static ProjectLoadedEventHandler ProjectLoaded;
+        public delegate void FileSystemLoadedEventHandler();
+		public static FileSystemLoadedEventHandler FileSystemLoaded;
 
         public delegate void RecentProjectsUpdatedEventHandler();
         public static RecentProjectsUpdatedEventHandler RecentProjectsUpdated;

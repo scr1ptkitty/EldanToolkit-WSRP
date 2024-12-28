@@ -51,7 +51,7 @@ namespace EldanToolkit.Project
 				file.lastProjects.Remove(file.lastProjects.Last());
             }
 			QueueSave();
-            Events.RecentProjectsUpdated();
+            Events.RecentProjectsUpdated?.Invoke();
         }
 
         public static IReadOnlyList<string> getLastProjects()

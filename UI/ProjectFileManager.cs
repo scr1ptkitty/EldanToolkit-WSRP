@@ -3,6 +3,8 @@ using Godot;
 
 public partial class ProjectFileManager : Control
 {
+    public Project CurrentProject { get; private set; }
+
     [Export]
     public ProjectFileSystemView FileView;
 
@@ -14,7 +16,7 @@ public partial class ProjectFileManager : Control
     private Button RemoveFromProject = null;
     private Button LoadModel = null;
 
-    private ProjectFileSystem pfs { get { return ProjectHolder.project?.FileSystem; } }
+    private ProjectFileSystem pfs { get { return CurrentProject?.FileSystem; } }
 
     public override void _Ready()
     {

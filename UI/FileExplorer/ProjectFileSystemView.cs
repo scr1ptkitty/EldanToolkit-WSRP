@@ -1,9 +1,12 @@
 using EldanToolkit.Project;
 using Godot;
+using System;
 using System.IO;
 
 public partial class ProjectFileSystemView : Control
 {
+	public Project CurrentProject { get; private set; }
+
 	[Export]
 	public VBoxContainer fileList;
 
@@ -20,42 +23,21 @@ public partial class ProjectFileSystemView : Control
 
 	protected string currentFolder = ""; // in the format "abc/def/"
 
-	private bool needsRefresh = true;
+	private bool needsRefresh = false;
 
     private Color FileInProjectColor = new Color(0.5f, 0.7f, 0.6f);
     private Color DefaultFileColor = new Color(0.5f, 0.5f, 0.5f);
 
 	private Callable ProjectLoadEvent;
 
-	private ProjectFileSystem pfs { get { return ProjectHolder.project?.FileSystem; } }
+	private ProjectFileSystem pfs { get { return CurrentProject?.FileSystem; } }
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-
-        ProjectLoadEvent = Callable.From(Refresh);
-        ProjectHolder.Instance.Connect(ProjectHolder.SignalName.FileSystemLoad, ProjectLoadEvent);
+		ProjectHolder.ProjectObservable.Subscribe(ProjectLoaded);
+		Refresh();
     }
-
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-
-		if (disposing)
-        {
-            ProjectHolder.Instance.Disconnect(ProjectHolder.SignalName.FileSystemLoad, ProjectLoadEvent);
-        }
-    }
-
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(double delta)
-	{
-		if(needsRefresh)
-		{
-            populate();
-			needsRefresh = false;
-        }
-	}
 
 	public void populate()
     {
@@ -149,9 +131,18 @@ public partial class ProjectFileSystemView : Control
         }
         SelectedFileChanged?.Invoke(filename, currentFolder, selectedImportFile);
 	}
+	
+	public void ProjectLoaded(Project project)
+	{
+		CurrentProject = project;
+	}
 
 	public void Refresh()
 	{
-		needsRefresh = true;
+		if (!needsRefresh)
+		{
+			Callable.From(populate).CallDeferred();
+			needsRefresh = true;
+		}
 	}
 }

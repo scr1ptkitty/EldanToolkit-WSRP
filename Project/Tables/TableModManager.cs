@@ -10,14 +10,14 @@ using WildStar.TextTable;
 
 public class TableModManager : TableDataSet
 {
-	public TableManager TableManager { get; private set; }
 	public Project Project { get; private set; }
 	private Dictionary<GameTableName, DataTable> tableMods = new();
+	public TableDataSet BaseSet { get; private set; }
 
-	public TableModManager(Project project)
+	public TableModManager(Project project, TableDataSet baseSet)
 	{
 		Project = project;
-		TableManager = project.TableManager;
+		BaseSet = baseSet;
 	}
 
 	public DataTable GetTable(GameTableName tableName)
@@ -26,15 +26,15 @@ public class TableModManager : TableDataSet
 		{
 			return table;
 		}
-		var baseTableTask = TableManager.GetTableAsync(tableName);
+		var baseTableTask = BaseSet.GetTable(tableName);
 		string modPath = GetPathFor(tableName);
 		if(File.Exists(modPath))
 		{
-			table = TableModLoader.Load(modPath, baseTableTask.Result);
+			table = TableModLoader.Load(modPath, baseTableTask);
 		}
 		else
 		{
-			table = new DataTable(baseTableTask.Result);
+			table = new DataTable(baseTableTask);
 		}
 		table.TableName = tableName;
 		tableMods.Add(tableName, table);
@@ -63,7 +63,7 @@ public class TableModManager : TableDataSet
 		{
 			try
 			{
-				string srcPath = Path.Combine(Project.FileSystem.projectFilesPath, GameTableUtil.GetDefaultFilePath(tableName) + "mod");
+				string srcPath = GetPathFor(tableName);
 				if (File.Exists(srcPath))
 				{
 					string dstPath = Path.Combine(Project.FileSystem.processedFilesPath, GameTableUtil.GetDefaultFilePath(tableName));

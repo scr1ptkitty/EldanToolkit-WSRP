@@ -13,7 +13,7 @@ namespace EldanToolkit.Project
 {
     public class ProjectFileSystem
 	{
-		private Project proj;
+		public Project CurrentProject { get; private set; }
 		
         [Export(PropertyHint.GlobalDir)]
         public string projectPath;
@@ -27,8 +27,9 @@ namespace EldanToolkit.Project
 
 		public ProjectFileSystem(Project proj)
 		{
-			this.proj = proj;
+			this.CurrentProject = proj;
             ProgramSettings.ProgramSettingsUpdated += ReadArchive;
+			ProjectHolder.ProjectObservable.Subscribe((proj) => CurrentProject = proj);
 		}
 
 		public void MakeFolders()
@@ -179,7 +180,7 @@ namespace EldanToolkit.Project
             foreach(var f in importfiles)
             {
                 string relative = Path.GetRelativePath(projectFilesPath, f).GetBaseName();
-                ImportFile.Load(f).Import(Path.Combine(processedFilesPath, relative), false);
+                ImportFile.Load(f).Import(Path.Combine(processedFilesPath, relative), false, CurrentProject);
             }
 		}
 
@@ -220,7 +221,7 @@ namespace EldanToolkit.Project
 			if (!files.Any()) return;
 			var pathFixed = files.Select(f => (Path.Combine(processedFilesPath, Path.GetRelativePath(projectFilesPath, f.Item1.GetBaseName())), f.Item2)).ToArray();
 
-			var converted = pathFixed.SelectMany(f => f.Item2.Import(f.Item1, false)).ToArray();
+			var converted = pathFixed.SelectMany(f => f.Item2.Import(f.Item1, false, CurrentProject)).ToArray();
             IndexToolWrapper.DoCompile(processedFilesPath, converted.Select(f => Path.GetRelativePath(processedFilesPath, f)), inputIndex, outputIndex);
         }
 

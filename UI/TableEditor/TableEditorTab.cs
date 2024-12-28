@@ -9,6 +9,7 @@ using WildStar.TestBed;
 
 public partial class TableEditorTab : VBoxContainer
 {
+	public Project Project { get; private set; }
 	private Stack<TableViewReference> Breadcrumbs = new();
 	private Container BreadcrumbsHolder;
 	private OptionButton TableSelector;
@@ -17,8 +18,6 @@ public partial class TableEditorTab : VBoxContainer
 	private EntryListElement TableEntryList;
 	private Button SaveButton;
 	private Button ImportTblButton;
-
-	private TableModManager mods;
 
 	private TableViewReference CurrentTable;
 	private DataTable TableRef;
@@ -30,7 +29,7 @@ public partial class TableEditorTab : VBoxContainer
 	public override void _Ready()
 	{
 		base._Ready();
-		mods = new TableModManager(ProjectHolder.project);
+
 		BreadcrumbsHolder = GetNode<Container>("%Breadcrumbs");
 		TableSelector = GetNode<OptionButton>("%TableSelector");
 		TableSelector.ItemSelected += TableSelected;
@@ -44,6 +43,16 @@ public partial class TableEditorTab : VBoxContainer
 
 		ImportTblButton = GetNode<Button>("%ImportTblButton");
 		ImportTblButton.Pressed += SelectTblImportFolder;
+
+		UpdateBreadcrumbs();
+		UpdateTableSelector();
+
+		ProjectHolder.ProjectObservable.Subscribe(ProjectChanged);
+	}
+
+	public void ProjectChanged(Project project)
+	{
+		Project = project;
 
 		UpdateBreadcrumbs();
 		UpdateTableSelector();
@@ -102,9 +111,9 @@ public partial class TableEditorTab : VBoxContainer
 		CurrentTable = table;
 		if (table.Type == TableViewReference.TableViewType.CustomView) return;
 
-		TableRef = mods.GetTable(table.NameEnum);
+		TableRef = Project.TableMods.GetTable(table.NameEnum);
 
-		TableEntryList.DataSet = mods;
+		TableEntryList.DataSet = Project.TableMods;
 		TableEntryList.TableName = table.NameEnum;
 		UpdateListCache();
 		TableEntryList.GotoPage(0, true);
@@ -135,7 +144,7 @@ public partial class TableEditorTab : VBoxContainer
 		foreach(var column in TableRef.schema)
 		{
 			if (column.Key == "UID") continue;
-			EntryEditor.AddChild(CreateVariableCell(id.Value, mods, CurrentTable.NameEnum, column.Key));
+			EntryEditor.AddChild(CreateVariableCell(id.Value, Project.TableMods, CurrentTable.NameEnum, column.Key));
 		}
 	}
 
@@ -148,7 +157,7 @@ public partial class TableEditorTab : VBoxContainer
 
 	public void SaveTables()
 	{
-		mods.SaveMods();
+		Project.TableMods.SaveMods();
 	}
 
 	public void SelectTblImportFolder()
@@ -162,6 +171,6 @@ public partial class TableEditorTab : VBoxContainer
 
 		if (path == null) return;
 
-		mods.ImportModsFromTbl(path);
+		Project.TableMods.ImportModsFromTbl(path);
 	}
 }

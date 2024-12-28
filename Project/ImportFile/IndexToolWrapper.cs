@@ -21,7 +21,7 @@ public class IndexToolWrapper
 			if (!string.IsNullOrEmpty(ProgramSettings.IndexToolPath))
 			{
 				//string xmlPath = Path.GetTempFileName(); // Creates empty temp file and gives path to it.
-				string xmlPath = Path.Combine(ProjectHolder.project.FileSystem.projectPath, Path.GetFileNameWithoutExtension(outputPath) + ".xml");
+				string xmlPath = Path.Combine(ProjectHolder.CurrentProject.FileSystem.projectPath, Path.GetFileNameWithoutExtension(outputPath) + ".xml");
 				IndexToolXML fileListXML = new IndexToolXML();
 
 				fileListXML.folders = new ITFileFolder[fileList.Keys.Count];

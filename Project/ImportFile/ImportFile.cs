@@ -43,7 +43,7 @@ public class ImportFile
 		return true;
 	}
 
-	public string[] Import(string dest, bool forceConvert)
+	public string[] Import(string dest, bool forceConvert, Project project)
 	{
 		if(type == ConvertType.Copy)
 		{
@@ -53,7 +53,7 @@ public class ImportFile
 		}
 		else if(convertData != null)
 		{
-			return convertData.Import(FilePath, dest);
+			return convertData.Import(FilePath, dest, project);
 		}
 		return null;
 	}
@@ -104,7 +104,7 @@ public class ImportFile
 [XmlType("ConvertData")]
 public abstract class ConvertData
 {
-	public abstract string[] Import(string source, string dest);
+	public abstract string[] Import(string source, string dest, Project project);
 }
 
 [XmlType("PNG2TEX")]
@@ -131,7 +131,7 @@ public class PNG2TEX : ConvertData
 	[XmlAttribute("TexType")]
 	public TexType texType = TexType.DXT3;
 
-	public override string[] Import(string source, string dest)
+	public override string[] Import(string source, string dest, Project project)
 	{
 		string srcfile = source.GetBaseName();
 		if(srcfile.GetExtension().ToLower() != "tex")
@@ -146,13 +146,12 @@ public class PNG2TEX : ConvertData
 [XmlType("GameTable")]
 public class GameTableData : ConvertData
 {
-	public override string[] Import(string source, string dest)
+	public override string[] Import(string source, string dest, Project project)
 	{
 		string DBPath = Path.GetDirectoryName(source);
 		string destPath = Path.GetDirectoryName(dest);
 		Directory.CreateDirectory(destPath);
 
-		TableModManager tmm = new TableModManager(ProjectHolder.project);
-		return tmm.ExportMods(destPath);
+		return ProjectHolder.CurrentProject.TableMods.ExportMods(destPath);
 	}
 }

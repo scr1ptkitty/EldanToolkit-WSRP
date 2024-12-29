@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://d3riqpcp87v8y"]
 
 [ext_resource type="PackedScene" uid="uid://5be8g4twjf8q" path="res://UI/FileExplorer/FileExplorer.tscn" id="1_af8jl"]
-[ext_resource type="Script" path="res://UI/ProjectFileManager.cs" id="1_ukfbr"]
+[ext_resource type="Script" path="res://UI/FileExplorer/ProjectFileManager.cs" id="1_ukfbr"]
 [ext_resource type="Texture2D" uid="uid://codlhoqdsi4uu" path="res://UI/FileExplorer/Icons/material-symbols--exclamation-rounded.svg" id="2_qv4yx"]
 
 [node name="HSplitContainer" type="HSplitContainer" node_paths=PackedStringArray("FileView", "SidebarContainer")]
@@ -24,7 +24,6 @@ layout_mode = 2
 
 [node name="ArchivePathWarning" type="PanelContainer" parent="VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/HBoxContainer/ArchivePathWarning"]
@@ -42,13 +41,6 @@ texture = ExtResource("2_qv4yx")
 [node name="ArchivePathWarning" type="Label" parent="VBoxContainer/HBoxContainer/ArchivePathWarning/MarginContainer/HBoxContainer"]
 layout_mode = 2
 text = "Archive Path Not Set!"
-
-[node name="SetArchivePath" type="Button" parent="VBoxContainer/HBoxContainer"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-text = "Set Archive Path"
-icon = ExtResource("2_qv4yx")
 
 [node name="AddToProject" type="Button" parent="VBoxContainer/HBoxContainer"]
 unique_name_in_owner = true
@@ -70,4 +62,40 @@ layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.4
 horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SimpleEditor" type="VBoxContainer" parent="ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="ImportDirectly" type="Button" parent="ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Import without conversion"
+
+[node name="ImportAsTex" type="Button" parent="ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Import as .tex"
+
+[node name="ImportAsM3" type="Button" parent="ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Import as .m3"
+
+[node name="EditTable" type="Button" parent="ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Edit game table"

@@ -54,6 +54,11 @@ namespace EldanToolkit.Project
             Events.RecentProjectsUpdated?.Invoke();
         }
 
+        public static bool ArchivePathValid()
+        {
+            return File.Exists(ArchivePath);
+        }
+
         public static IReadOnlyList<string> getLastProjects()
         {
             return file.lastProjects.AsReadOnly();

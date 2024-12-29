@@ -1,5 +1,6 @@
 ﻿using EldanToolkit.Project;
 using Godot;
+using System;
 
 public partial class ProjectFileManager : Control
 {
@@ -21,6 +22,7 @@ public partial class ProjectFileManager : Control
     public override void _Ready()
     {
         base._Ready();
+        ProjectHolder.ProjectObservable.Subscribe((proj) => CurrentProject = proj);
         FileView.SelectedFileChanged += OnSelectedFileChanged;
 
         ArchivePathWarning = GetNode<Control>("%ArchivePathWarning");
@@ -53,6 +55,7 @@ public partial class ProjectFileManager : Control
         }));
         SetButtons();
         ProgramSettings.ProgramSettingsUpdated += UpdateArchivePathWarning;
+        UpdateArchivePathWarning();
     }
 
     public void OnSelectedFileChanged(string filename, string folder, string importFile)
@@ -68,7 +71,7 @@ public partial class ProjectFileManager : Control
 
         if (FileView.selectedFile != null)
         {
-            if (FileView.selectedFile != null && pfs.IsInProject(FileView.selectedFilePath))
+            if (pfs?.IsInProject(FileView.selectedFilePath) ?? true)
             {
                 RemoveFromProject.Visible = true;
                 LoadModel.Visible = true;
@@ -84,9 +87,6 @@ public partial class ProjectFileManager : Control
 
     public void UpdateArchivePathWarning()
     {
-		if (ProgramSettings.ArchivePath == null)
-		{
-			ArchivePathWarning.Visible = true;
-		}
+        ArchivePathWarning.Visible = ProgramSettings.ArchivePathValid();
 	}
 }

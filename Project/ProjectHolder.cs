@@ -44,7 +44,7 @@ namespace EldanToolkit.Project
                 }
                 ProjectObservable.OnNext(proj);
                 AddChild(CurrentProject);
-				Events.FileSystemLoaded?.Invoke();
+				Events.FileSystemChanged?.Invoke();
 				return true;
             }
             return false;
@@ -62,7 +62,7 @@ namespace EldanToolkit.Project
                 }
                 ProjectObservable.OnNext(proj);
                 AddChild(CurrentProject);
-				Events.FileSystemLoaded?.Invoke();
+				Events.FileSystemChanged?.Invoke();
 				return true;
             }
             return false;

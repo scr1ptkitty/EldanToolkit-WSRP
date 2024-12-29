@@ -7,6 +7,8 @@ namespace EldanToolkit.Project
     {
         public ProjectFileSystem FileSystem {  get; private set; }
         public TableManager TableManager { get; private set; }
+        public TableModManager TableMods { get; private set; }
+        //public TableModManager TableModWIP { get; private set; }
         public LogSystem LogSystem { get; private set; }
 
         public string ProjectPath { get; private set; }
@@ -20,6 +22,8 @@ namespace EldanToolkit.Project
 		{
 			FileSystem = new ProjectFileSystem(this);
 			TableManager = new TableManager(this);
+            TableMods = new TableModManager(this, TableManager);
+            //TableModWIP = new TableModManager(this, TableMods);
 			LogSystem = new LogSystem(this);
         }
 

@@ -1,10 +1,12 @@
-[gd_scene load_steps=4 format=3 uid="uid://d3riqpcp87v8y"]
+[gd_scene load_steps=6 format=3 uid="uid://d3riqpcp87v8y"]
 
 [ext_resource type="PackedScene" uid="uid://5be8g4twjf8q" path="res://UI/FileExplorer/FileExplorer.tscn" id="1_af8jl"]
-[ext_resource type="Script" path="res://UI/ProjectFileManager.cs" id="1_ukfbr"]
+[ext_resource type="Script" path="res://UI/FileExplorer/ProjectFileManager.cs" id="1_ukfbr"]
 [ext_resource type="Texture2D" uid="uid://codlhoqdsi4uu" path="res://UI/FileExplorer/Icons/material-symbols--exclamation-rounded.svg" id="2_qv4yx"]
+[ext_resource type="Script" path="res://UI/FileExplorer/FileContextMenu.cs" id="4_0sslp"]
+[ext_resource type="Script" path="res://UI/FileExplorer/ImportFileEditor.cs" id="4_tyqva"]
 
-[node name="HSplitContainer" type="HSplitContainer" node_paths=PackedStringArray("FileView", "SidebarContainer")]
+[node name="HSplitContainer" type="HSplitContainer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -12,62 +14,148 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_vertical = 3
 script = ExtResource("1_ukfbr")
-FileView = NodePath("VBoxContainer/ProjectFiles")
-SidebarContainer = NodePath("ScrollContainer")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
-
-[node name="ArchivePathWarning" type="PanelContainer" parent="VBoxContainer/HBoxContainer"]
+[node name="FileSelector" parent="." instance=ExtResource("1_af8jl")]
 unique_name_in_owner = true
-visible = false
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/HBoxContainer/ArchivePathWarning"]
-layout_mode = 2
-theme_override_constants/margin_left = 4
-theme_override_constants/margin_right = 4
-
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/HBoxContainer/ArchivePathWarning/MarginContainer"]
-layout_mode = 2
-
-[node name="TextureRect" type="TextureRect" parent="VBoxContainer/HBoxContainer/ArchivePathWarning/MarginContainer/HBoxContainer"]
-layout_mode = 2
-texture = ExtResource("2_qv4yx")
-
-[node name="ArchivePathWarning" type="Label" parent="VBoxContainer/HBoxContainer/ArchivePathWarning/MarginContainer/HBoxContainer"]
-layout_mode = 2
-text = "Archive Path Not Set!"
-
-[node name="SetArchivePath" type="Button" parent="VBoxContainer/HBoxContainer"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-text = "Set Archive Path"
-icon = ExtResource("2_qv4yx")
-
-[node name="AddToProject" type="Button" parent="VBoxContainer/HBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Add To Project"
-
-[node name="RemoveFromProject" type="Button" parent="VBoxContainer/HBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Remove From Project"
-
-[node name="LoadModel" type="Button" parent="VBoxContainer/HBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Load Model"
-
-[node name="ProjectFiles" parent="VBoxContainer" instance=ExtResource("1_af8jl")]
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.4
 horizontal_scroll_mode = 0
+
+[node name="FileMenu" type="VBoxContainer" parent="ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("4_0sslp")
+
+[node name="Label" type="Label" parent="ScrollContainer/FileMenu"]
+layout_mode = 2
+text = "File Menu"
+
+[node name="ImportFileEditor" type="VBoxContainer" parent="ScrollContainer/FileMenu"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("4_tyqva")
+
+[node name="HSeparator" type="HSeparator" parent="ScrollContainer/FileMenu/ImportFileEditor"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="ScrollContainer/FileMenu/ImportFileEditor"]
+layout_mode = 2
+text = "File Import Settings"
+
+[node name="ImportFileBroken" type="VBoxContainer" parent="ScrollContainer/FileMenu/ImportFileEditor"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="HSeparator3" type="HSeparator" parent="ScrollContainer/FileMenu/ImportFileEditor/ImportFileBroken"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ScrollContainer/FileMenu/ImportFileEditor/ImportFileBroken"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_right = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ScrollContainer/FileMenu/ImportFileEditor/ImportFileBroken/MarginContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="ScrollContainer/FileMenu/ImportFileEditor/ImportFileBroken/MarginContainer/HBoxContainer"]
+layout_mode = 2
+texture = ExtResource("2_qv4yx")
+
+[node name="ImportFileBrokenLabel" type="Label" parent="ScrollContainer/FileMenu/ImportFileEditor/ImportFileBroken/MarginContainer/HBoxContainer"]
+layout_mode = 2
+text = ".import file failed to load!"
+
+[node name="ImportFileGeneral" type="VBoxContainer" parent="ScrollContainer/FileMenu/ImportFileEditor"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HSeparator2" type="HSeparator" parent="ScrollContainer/FileMenu/ImportFileEditor/ImportFileGeneral"]
+layout_mode = 2
+
+[node name="ImportFileType" type="Label" parent="ScrollContainer/FileMenu/ImportFileEditor/ImportFileGeneral"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ".tex"
+
+[node name="ArchivePathWarning" type="VBoxContainer" parent="ScrollContainer/FileMenu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="ScrollContainer/FileMenu/ArchivePathWarning"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ScrollContainer/FileMenu/ArchivePathWarning"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_right = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ScrollContainer/FileMenu/ArchivePathWarning/MarginContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="ScrollContainer/FileMenu/ArchivePathWarning/MarginContainer/HBoxContainer"]
+layout_mode = 2
+texture = ExtResource("2_qv4yx")
+
+[node name="ArchivePathWarning" type="Label" parent="ScrollContainer/FileMenu/ArchivePathWarning/MarginContainer/HBoxContainer"]
+layout_mode = 2
+text = "Archive Path Not Set!"
+
+[node name="HSeparator" type="HSeparator" parent="ScrollContainer/FileMenu"]
+layout_mode = 2
+
+[node name="AddToProject" type="Button" parent="ScrollContainer/FileMenu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Add to project"
+alignment = 0
+
+[node name="RemoveFromProject" type="Button" parent="ScrollContainer/FileMenu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Remove from project"
+alignment = 0
+
+[node name="LoadModel" type="Button" parent="ScrollContainer/FileMenu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Load model (testing)"
+alignment = 0
+
+[node name="ImportDirectly" type="Button" parent="ScrollContainer/FileMenu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Import without conversion"
+alignment = 0
+
+[node name="ImportAsTex" type="Button" parent="ScrollContainer/FileMenu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Import as .tex"
+alignment = 0
+
+[node name="ImportAsM3" type="Button" parent="ScrollContainer/FileMenu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Import as .m3"
+alignment = 0
+
+[node name="EditTable" type="Button" parent="ScrollContainer/FileMenu"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "Edit game table"
+alignment = 0

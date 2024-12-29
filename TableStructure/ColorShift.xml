@@ -1,7 +1,6 @@
 <TableData>
-  <Description>
-	Defines the columns for the Item2 table, including references and asset paths.
-  </Description>
+  <Description>Defines a decor dye.</Description>
+  <DefaultEditorDescriptionColumn>localizedTextId</DefaultEditorDescriptionColumn>
   <Column>
 	<Name>ID</Name>
 	<ColumnType>ID</ColumnType>

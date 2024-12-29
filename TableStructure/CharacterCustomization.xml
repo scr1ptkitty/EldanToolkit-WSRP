@@ -1,0 +1,13 @@
+<TableData>
+  <Description>Defines a thing.</Description>
+  <DefaultEditorDescriptionColumn>localizedTextId</DefaultEditorDescriptionColumn>
+  <Column>
+	<Name>ID</Name>
+	<ColumnType>ID</ColumnType>
+  </Column>
+  <Column>
+	<Name>itemDisplayId</Name>
+	<ColumnType>Reference</ColumnType>
+	<RefTable>ItemDisplay</RefTable>
+  </Column>
+</TableData>

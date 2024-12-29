@@ -8,33 +8,33 @@ using System.Xml.XPath;
 using WildStar.GameTable;
 using WildStar.TextTable;
 
-public class TableModManager
+public class TableModManager : TableDataSet
 {
-	public TableManager TableManager { get; private set; }
 	public Project Project { get; private set; }
 	private Dictionary<GameTableName, DataTable> tableMods = new();
+	public TableDataSet BaseSet { get; private set; }
 
-	public TableModManager(Project project)
+	public TableModManager(Project project, TableDataSet baseSet)
 	{
 		Project = project;
-		TableManager = project.TableManager;
+		BaseSet = baseSet;
 	}
 
-	public DataTable GetTableMod(GameTableName tableName)
+	public DataTable GetTable(GameTableName tableName)
 	{
 		if(tableMods.TryGetValue(tableName, out DataTable table))
 		{
 			return table;
 		}
-		var baseTableTask = TableManager.GetTableAsync(tableName);
+		var baseTableTask = BaseSet.GetTable(tableName);
 		string modPath = GetPathFor(tableName);
 		if(File.Exists(modPath))
 		{
-			table = TableModLoader.Load(modPath, baseTableTask.Result);
+			table = TableModLoader.Load(modPath, baseTableTask);
 		}
 		else
 		{
-			table = new DataTable(baseTableTask.Result);
+			table = new DataTable(baseTableTask);
 		}
 		table.TableName = tableName;
 		tableMods.Add(tableName, table);
@@ -63,11 +63,11 @@ public class TableModManager
 		{
 			try
 			{
-				string srcPath = Path.Combine(Project.FileSystem.projectFilesPath, GameTableUtil.GetDefaultFilePath(tableName) + "mod");
+				string srcPath = GetPathFor(tableName);
 				if (File.Exists(srcPath))
 				{
 					string dstPath = Path.Combine(Project.FileSystem.processedFilesPath, GameTableUtil.GetDefaultFilePath(tableName));
-					DataTable table = GetTableMod(tableName);
+					DataTable table = GetTable(tableName);
 					GameTableLoader.Save(table, dstPath);
 					result.Add(dstPath);
 				}
@@ -105,7 +105,7 @@ public class TableModManager
 				}
 
 				var rows = newTable.GetRowList().ToList();
-				var tblmod = GetTableMod(tableName);
+				var tblmod = GetTable(tableName);
 				tblmod.rows.Clear(); // just wipe it, we can't merge yet.
 
 				foreach (var row in newTable.rows)

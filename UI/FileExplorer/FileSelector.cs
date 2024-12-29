@@ -1,61 +1,39 @@
 using EldanToolkit.Project;
 using Godot;
+using System;
 using System.IO;
 
-public partial class ProjectFileSystemView : Control
+public partial class FileSelector : Control
 {
+	public Project CurrentProject { get; private set; }
+	private ProjectFileSystem pfs { get { return CurrentProject?.FileSystem; } }
+
 	[Export]
 	public VBoxContainer fileList;
 
 	[Export]
 	public PackedScene fileEntryScene;
 
-	public delegate void SelectedFileChangedEventHandler(string filename, string folder, string importFile);
+	public delegate void SelectedFileChangedEventHandler(string relativePath);
     public SelectedFileChangedEventHandler SelectedFileChanged;
 
-	public string selectedFile = null;
-    public string selectedImportFile = null;
-
-	public string selectedFilePath { get { return selectedFile == null ? null : $"{currentFolder}{selectedFile}"; } }
+	private ButtonGroup entryButtonGroup;
 
 	protected string currentFolder = ""; // in the format "abc/def/"
 
-	private bool needsRefresh = true;
+	private bool needsRefresh = false;
 
     private Color FileInProjectColor = new Color(0.5f, 0.7f, 0.6f);
     private Color DefaultFileColor = new Color(0.5f, 0.5f, 0.5f);
 
-	private Callable ProjectLoadEvent;
-
-	private ProjectFileSystem pfs { get { return ProjectHolder.project?.FileSystem; } }
-
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
-
-        ProjectLoadEvent = Callable.From(Refresh);
-        ProjectHolder.Instance.Connect(ProjectHolder.SignalName.FileSystemLoad, ProjectLoadEvent);
+		ProjectHolder.ProjectObservable.Subscribe(ProjectLoaded);
+		Events.FileSystemChanged += Refresh;
+		entryButtonGroup = new ButtonGroup();
+		Refresh();
     }
-
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-
-		if (disposing)
-        {
-            ProjectHolder.Instance.Disconnect(ProjectHolder.SignalName.FileSystemLoad, ProjectLoadEvent);
-        }
-    }
-
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(double delta)
-	{
-		if(needsRefresh)
-		{
-            populate();
-			needsRefresh = false;
-        }
-	}
 
 	public void populate()
     {
@@ -80,7 +58,8 @@ public partial class ProjectFileSystemView : Control
 			string fileName = Path.GetFileName(file);
             FileEntry fe = fileEntryScene.Instantiate<FileEntry>();
             fe.SetData(fileName, FileType.Directory, () => SetFolder($"{currentFolder}{fileName}/"));
-            fileList.AddChild(fe);
+			fe.ButtonGroup = entryButtonGroup;
+			fileList.AddChild(fe);
         }
 
         list = pfs.GetFilesInFolder(currentFolder);
@@ -90,8 +69,11 @@ public partial class ProjectFileSystemView : Control
             FileEntry fe = fileEntryScene.Instantiate<FileEntry>();
 			fe.SetData(fileName, GetFileType(file), () => SetFile(fileName));
 			fe.AddThemeColorOverride("font_color", pfs.IsInProject($"{currentFolder}{fileName}") ? FileInProjectColor : DefaultFileColor);
-            fileList.AddChild(fe);
+			fe.ButtonGroup = entryButtonGroup;
+			fileList.AddChild(fe);
         }
+
+		needsRefresh = false;
     }
 
 	public FileType GetFileType(string fileName)
@@ -126,32 +108,20 @@ public partial class ProjectFileSystemView : Control
 
 	protected void SetFile(string filename)
     {
-        selectedFile = filename;
-        if (filename == null)
-        {
-            selectedImportFile = null;
-            return;
-        }
-        if (Path.GetExtension(filename).Equals(".import", System.StringComparison.InvariantCultureIgnoreCase))
-        {
-            selectedImportFile = filename;
-        }
-        else
-        {
-            if(File.Exists(selectedFilePath + ".import"))
-            {
-                selectedImportFile = filename + ".import";
-            }
-            else
-            {
-                selectedImportFile = null;
-            }
-        }
-        SelectedFileChanged?.Invoke(filename, currentFolder, selectedImportFile);
+		SelectedFileChanged?.Invoke(filename == null ? null : $"{currentFolder}{filename}");
+	}
+	
+	public void ProjectLoaded(Project project)
+	{
+		CurrentProject = project;
 	}
 
 	public void Refresh()
 	{
-		needsRefresh = true;
+		if (!needsRefresh)
+		{
+			Callable.From(populate).CallDeferred();
+			needsRefresh = true;
+		}
 	}
 }

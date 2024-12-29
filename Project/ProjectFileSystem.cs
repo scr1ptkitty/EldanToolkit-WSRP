@@ -13,7 +13,7 @@ namespace EldanToolkit.Project
 {
     public class ProjectFileSystem
 	{
-		private Project proj;
+		public Project CurrentProject { get; private set; }
 		
         [Export(PropertyHint.GlobalDir)]
         public string projectPath;
@@ -27,8 +27,10 @@ namespace EldanToolkit.Project
 
 		public ProjectFileSystem(Project proj)
 		{
-			this.proj = proj;
+			CurrentProject = proj;
             ProgramSettings.ProgramSettingsUpdated += ReadArchive;
+            ReadArchive();
+			ProjectHolder.ProjectObservable.Subscribe((proj) => CurrentProject = proj);
 		}
 
 		public void MakeFolders()
@@ -109,11 +111,11 @@ namespace EldanToolkit.Project
             return Path.Exists(Path.Combine(projectFilesPath, path));
         }
 
-        public bool IsInArchive(string path)
+        public bool IsInArchive(string path, bool forceLoad = true)
         {
             foreach(var a in archiveFiles)
             {
-                if(a.GetFileSystem().GetFile(path) != null)
+                if((forceLoad || a.IsReady()) && a.GetFileSystem().GetFile(path) != null)
                 {
                     return true;
                 }
@@ -145,6 +147,7 @@ namespace EldanToolkit.Project
 				fs.Write(file);
 				fs.Flush();
 				fs.Dispose();
+                Events.FileSystemChanged?.Invoke();
 				return true;
 			}
 			return false;
@@ -167,6 +170,7 @@ namespace EldanToolkit.Project
         public void RemoveFromProject(string path)
         {
             File.Delete(Path.Combine(projectFilesPath, path));
+            Events.FileSystemChanged?.Invoke();
         }
 
         public void ConvertFiles()
@@ -179,7 +183,7 @@ namespace EldanToolkit.Project
             foreach(var f in importfiles)
             {
                 string relative = Path.GetRelativePath(projectFilesPath, f).GetBaseName();
-                ImportFile.Load(f).Import(Path.Combine(processedFilesPath, relative), false);
+                ImportFile.Load(f).Import(Path.Combine(processedFilesPath, relative), false, CurrentProject);
             }
 		}
 
@@ -220,93 +224,8 @@ namespace EldanToolkit.Project
 			if (!files.Any()) return;
 			var pathFixed = files.Select(f => (Path.Combine(processedFilesPath, Path.GetRelativePath(projectFilesPath, f.Item1.GetBaseName())), f.Item2)).ToArray();
 
-			var converted = pathFixed.SelectMany(f => f.Item2.Import(f.Item1, false)).ToArray();
+			var converted = pathFixed.SelectMany(f => f.Item2.Import(f.Item1, false, CurrentProject)).ToArray();
             IndexToolWrapper.DoCompile(processedFilesPath, converted.Select(f => Path.GetRelativePath(processedFilesPath, f)), inputIndex, outputIndex);
-        }
-
-        public async void CompileProject_()
-        {
-            Directory.CreateDirectory(clientPatchPath); // Make sure this folder exists
-            Directory.CreateDirectory(processedFilesPath);
-
-			File.Delete(Path.Combine(clientPatchPath, "Patch.index"));
-            File.Copy(Path.Combine(originalFilesPath, "Patch.index"), Path.Combine(clientPatchPath, "Patch.index"));
-
-            FileSystem patchIndex = FileSystem.Create(new Progress(), clientPatchPath + "/Patch", false, null, cts.Token).Result;
-
-            List<ArchiveFilePair> archives = new();
-            ArchiveFilePair defaultArchive = null;
-
-            {
-                // Read index file list
-                var archiveFiles = patchIndex.ListFiles(""); // has no folders
-                foreach (var file in archiveFiles)
-                {
-                    if (!File.Exists(Path.Combine(originalFilesPath, file))) continue; // Probably Client.index, for 32-bit client.
-
-                    File.Delete(Path.Combine(clientPatchPath, file));
-                    File.Copy(Path.Combine(originalFilesPath, file), Path.Combine(clientPatchPath, file));
-
-                    archives.Add(new ArchiveFilePair(Path.Combine(clientPatchPath, Path.GetFileNameWithoutExtension(file)), false, cts.Token));
-                    if (file.Equals("ClientData.index", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        defaultArchive = archives[archives.Count - 1];
-                    }
-                }
-            }
-
-            if (defaultArchive == null)
-            {
-                // Lol, we dun goofed?
-                throw new InvalidDataException("Could not find ClientData.index!");
-            }
-
-            var defaultFS = defaultArchive.GetFileSystem();
-
-            {
-                // Write index files
-                var files = GetAllProjectFiles(processedFilesPath);
-                int num = 1;
-                foreach (var file in files)
-                {
-                    GD.Print($"Processing file #{num}: {file}");
-                    string relativePath = Path.GetRelativePath(processedFilesPath, file).Replace('\\', '/');
-                    FileSystem targetFS = null;
-                    foreach (var archive in archives)
-                    {
-                        var fs = archive.GetFileSystem();
-                        if (fs.GetFile(relativePath) != null)
-                        {
-                            targetFS = fs;
-                            break;
-                        }
-                    }
-					targetFS = targetFS ?? defaultFS;
-                    byte[] bytes = File.ReadAllBytes(file);
-					targetFS.Write(relativePath, bytes, File.GetLastWriteTimeUtc(file));
-                    num += 1;
-                }
-
-                foreach (var archive in archives)
-                {
-                    archive.GetFileSystem().Dispose();
-                }
-                archives.Clear();
-            }
-
-            {
-                // Write Patch.index
-                var archiveFiles = patchIndex.ListFiles("");
-                foreach (var file in archiveFiles)
-                {
-                    string path = Path.Combine(clientPatchPath, file);
-                    if (File.Exists(path))
-                    {
-                        patchIndex.Write(file, File.ReadAllBytes(path), File.GetLastWriteTimeUtc(path));
-                    }
-                }
-                patchIndex.Dispose();
-            }
         }
 
         public List<string> GetAllProjectFiles(string path)
@@ -338,7 +257,7 @@ namespace EldanToolkit.Project
             task = Task.Run(() => FileSystem.Create(progress, index, hasArchive, null, token));
             task.ContinueWith((t) =>
             {
-                Callable.From(() => ProjectHolder.FileSystemLoadEvent()).CallDeferred();
+                Callable.From(() => Events.FileSystemChanged?.Invoke()).CallDeferred();
             });
         }
 

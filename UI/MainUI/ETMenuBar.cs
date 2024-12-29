@@ -5,6 +5,8 @@ using EldanToolkit.Project;
 
 public partial class ETMenuBar : MenuBar
 {
+	public Project CurrentProject { get; private set; }
+
 	[Export]
 	public PackedScene ProjectSettingsUIScene;
 
@@ -19,8 +21,9 @@ public partial class ETMenuBar : MenuBar
 	public void Setup(MainTabs tabs)
 	{
 		this.tabs = tabs;
-		ProgramSettings.ProgramSettingsUpdated += RefreshMenuBar;
+		ProgramSettings.ProgramSettingsUpdated += RefreshMenuBar; // To refresh the archive path warning.
 		RefreshMenuBar();
+		ProjectHolder.ProjectObservable.Subscribe((proj) => CurrentProject = proj);
 	}
 
 	public void RefreshMenuBar()
@@ -35,12 +38,13 @@ public partial class ETMenuBar : MenuBar
 		FileMenuCallbacks = new();
 		FileMenu.Name = "File";
 		AddChild(FileMenu);
-		FileMenu.Connect("index_pressed", Callable.From((int index) => {
-			if (FileMenuCallbacks[index] != null)
+		FileMenu.IndexPressed += (index) =>
+		{
+			if (FileMenuCallbacks[(int)index] != null)
 			{
-				FileMenuCallbacks[index]();
+				FileMenuCallbacks[(int)index]();
 			}
-		}));
+		};
 
 		FileMenu.AddItem("New Project");
 		FileMenuCallbacks.Add(() =>
@@ -109,17 +113,18 @@ public partial class ETMenuBar : MenuBar
 		BuildMenuCallbacks = new();
 		BuildMenu.Name = "Build";
 		AddChild(BuildMenu);
-		BuildMenu.Connect("index_pressed", Callable.From((int index) => {
-			if (BuildMenuCallbacks[index] != null)
+		BuildMenu.IndexPressed += (index) =>
+		{
+			if (BuildMenuCallbacks[(int)index] != null)
 			{
-				BuildMenuCallbacks[index]();
+				BuildMenuCallbacks[(int)index]();
 			}
-		}));
-
+		};
+		
 		BuildMenu.AddItem("Convert Files");
 		BuildMenuCallbacks.Add(() =>
 		{
-			ProjectHolder.project.ConvertFiles();
+			CurrentProject.ConvertFiles();
 		});
 
 		if (ProgramSettings.IndexToolPath != null)
@@ -127,7 +132,7 @@ public partial class ETMenuBar : MenuBar
 			BuildMenu.AddItem("Convert & Compile Project");
 			BuildMenuCallbacks.Add(() =>
 			{
-				ProjectHolder.project.ConvertAndCompile();
+				CurrentProject.ConvertAndCompile();
 			});
 		}
 	}

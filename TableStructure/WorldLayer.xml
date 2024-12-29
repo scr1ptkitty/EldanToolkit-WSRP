@@ -1,0 +1,22 @@
+<TableData>
+  <Description>Defines a thing.</Description>
+  <DefaultEditorDescriptionColumn>Description</DefaultEditorDescriptionColumn>
+  <Column>
+	<Name>ID</Name>
+	<ColumnType>ID</ColumnType>
+  </Column>
+  <Column>
+	<Name>ColorMapPath</Name>
+	<ColumnType>AssetPath</ColumnType>
+	<AssetFormat>tex</AssetFormat>
+  </Column>
+  <Column>
+	<Name>NormalMapPath</Name>
+	<ColumnType>AssetPath</ColumnType>
+	<AssetFormat>tex</AssetFormat>
+  </Column>
+  <Column>
+	<Name>localizedTextIdName</Name>
+	<ColumnType>LocalizedTextID</ColumnType>
+  </Column>
+</TableData>

@@ -51,7 +51,12 @@ namespace EldanToolkit.Project
 				file.lastProjects.Remove(file.lastProjects.Last());
             }
 			QueueSave();
-            Events.RecentProjectsUpdated();
+            Events.RecentProjectsUpdated?.Invoke();
+        }
+
+        public static bool ArchivePathValid()
+        {
+            return File.Exists(ArchivePath);
         }
 
         public static IReadOnlyList<string> getLastProjects()

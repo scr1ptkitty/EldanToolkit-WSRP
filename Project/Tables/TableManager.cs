@@ -8,7 +8,7 @@ using WildStar.TextTable;
 
 namespace EldanToolkit.Project
 {
-    public class TableManager
+    public class TableManager : TableDataSet
     {
         private Project proj;
 
@@ -20,7 +20,12 @@ namespace EldanToolkit.Project
         public TableManager(Project proj)
         {
             this.proj = proj;
-        }
+		}
+
+		public DataTable GetTable(GameTableName tableName)
+		{
+            return GetTableAsync(tableName).Result;
+		}
 
 		public async Task<DataTable> GetTableAsync(GameTableName tableName)
         {
@@ -90,5 +95,5 @@ namespace EldanToolkit.Project
         {
             return proj.FileSystem.ExtractFileToLocation(GameTableUtil.GetDefaultFilePath(name), GetTableCacheLocation(name));
         }
-    }
+	}
 }

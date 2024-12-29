@@ -1,0 +1,12 @@
+<TableData>
+  <Description>Defines a thing.</Description>
+  <DefaultEditorDescriptionColumn>universalCommand00</DefaultEditorDescriptionColumn>
+  <Column>
+	<Name>ID</Name>
+	<ColumnType>ID</ColumnType>
+  </Column>
+  <Column>
+	<Name>localizedTextIdName</Name>
+	<ColumnType>LocalizedTextID</ColumnType>
+  </Column>
+</TableData>

@@ -1,0 +1,14 @@
+<TableData>
+  <Description>Defines a localization entry.</Description>
+  <DefaultEditorDescriptionColumn>string</DefaultEditorDescriptionColumn>
+  <Column>
+	<Name>ID</Name>
+	<ColumnType>ID</ColumnType>
+	<Tooltip>The ID for this entry.</Tooltip>
+  </Column>
+  <Column>
+	<Name>Text</Name>
+	<ColumnType>Default</ColumnType>
+	<Tooltip>The text for this entry.</Tooltip>
+  </Column>
+</TableData>

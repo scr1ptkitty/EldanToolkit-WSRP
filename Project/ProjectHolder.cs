@@ -6,7 +6,8 @@ namespace EldanToolkit.Project
     {
         public static ProjectHolder Instance { get; private set; }
 
-        public static Project project { get; private set; }
+        public static Project CurrentProject => ProjectObservable.Value;
+        public static System.Reactive.Subjects.BehaviorSubject<Project> ProjectObservable = new(null);
 
         [Signal]
         public delegate void FileSystemLoadEventHandler();
@@ -36,15 +37,15 @@ namespace EldanToolkit.Project
             Project proj = Project.NewProject(path);
             if (proj != null)
             {
-                if (project != null)
+                if (CurrentProject != null)
                 {
-                    RemoveChild(project);
-                    project.QueueFree();
+                    RemoveChild(CurrentProject);
+                    CurrentProject.QueueFree();
                 }
-                project = proj;
-                AddChild(project);
-                FileSystemLoadEvent();
-                return true;
+                ProjectObservable.OnNext(proj);
+                AddChild(CurrentProject);
+				Events.FileSystemChanged?.Invoke();
+				return true;
             }
             return false;
         }
@@ -54,22 +55,17 @@ namespace EldanToolkit.Project
             Project proj = Project.LoadProject(path);
             if (proj != null)
             {
-                if (project != null)
+                if (CurrentProject != null)
                 {
-                    RemoveChild(project);
-                    project.QueueFree();
+                    RemoveChild(CurrentProject);
+                    CurrentProject.QueueFree();
                 }
-                project = proj;
-                AddChild(project);
-                FileSystemLoadEvent();
-                return true;
+                ProjectObservable.OnNext(proj);
+                AddChild(CurrentProject);
+				Events.FileSystemChanged?.Invoke();
+				return true;
             }
             return false;
-        }
-
-        public static void FileSystemLoadEvent()
-        {
-            Instance.EmitSignal(SignalName.FileSystemLoad);
         }
     }
 }

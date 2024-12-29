@@ -1,12 +1,15 @@
 using EldanToolkit.Project;
+using EldanToolkit.Shared;
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using WildStar.TestBed;
 
 public partial class TableEditorTab : VBoxContainer
 {
+	public Project Project { get; private set; }
 	private Stack<TableViewReference> Breadcrumbs = new();
 	private Container BreadcrumbsHolder;
 	private OptionButton TableSelector;
@@ -15,8 +18,6 @@ public partial class TableEditorTab : VBoxContainer
 	private EntryListElement TableEntryList;
 	private Button SaveButton;
 	private Button ImportTblButton;
-
-	private TableModManager mods;
 
 	private TableViewReference CurrentTable;
 	private DataTable TableRef;
@@ -28,7 +29,7 @@ public partial class TableEditorTab : VBoxContainer
 	public override void _Ready()
 	{
 		base._Ready();
-		mods = new TableModManager(ProjectHolder.project);
+
 		BreadcrumbsHolder = GetNode<Container>("%Breadcrumbs");
 		TableSelector = GetNode<OptionButton>("%TableSelector");
 		TableSelector.ItemSelected += TableSelected;
@@ -42,6 +43,16 @@ public partial class TableEditorTab : VBoxContainer
 
 		ImportTblButton = GetNode<Button>("%ImportTblButton");
 		ImportTblButton.Pressed += SelectTblImportFolder;
+
+		UpdateBreadcrumbs();
+		UpdateTableSelector();
+
+		ProjectHolder.ProjectObservable.Subscribe(ProjectChanged);
+	}
+
+	public void ProjectChanged(Project project)
+	{
+		Project = project;
 
 		UpdateBreadcrumbs();
 		UpdateTableSelector();
@@ -100,15 +111,17 @@ public partial class TableEditorTab : VBoxContainer
 		CurrentTable = table;
 		if (table.Type == TableViewReference.TableViewType.CustomView) return;
 
-		TableRef = mods.GetTableMod(table.NameEnum);
+		TableRef = Project.TableMods.GetTable(table.NameEnum);
 
+		TableEntryList.DataSet = Project.TableMods;
+		TableEntryList.TableName = table.NameEnum;
 		UpdateListCache();
-		TableEntryList.GotoPage(0, true);
 	}
 
 	private void UpdateListCache()
 	{
-		TableEntryList.OrderedList = TableRef.GetRowList().OrderBy(r => r.Key).ToList(); // Good place to add any filters.
+		// Good place to add any filters.
+		TableEntryList.SetList(TableRef.GetRowList().OrderBy(r => r.Key));
 	}
 
 	public void SelectEntry(uint? id)
@@ -131,32 +144,20 @@ public partial class TableEditorTab : VBoxContainer
 		foreach(var column in TableRef.schema)
 		{
 			if (column.Key == "UID") continue;
-			var name = column.Key;
-			var value = row.GetValue<object>(column.Key).ToString();
-			TableColumn columnStructure = null;
-			structure?.Columns.TryGetValue(name, out columnStructure);
-			EntryEditor.AddChild(CreateVariableCell(id.Value, TableRef, name, value, columnStructure));
+			EntryEditor.AddChild(CreateVariableCell(id.Value, Project.TableMods, CurrentTable.NameEnum, column.Key));
 		}
 	}
 
-	private Control CreateVariableCell(uint id, DataTable table, string name, string value, TableColumn type)
+	private Control CreateVariableCell(uint id, TableDataSet set, GameTableName tableName, string column)
 	{
-		Control cell = EntryCell.Instantiate<Control>();
-		Label varName = cell.GetNode<Label>("%VariableName");
-		varName.Text = name;
-		LineEdit edit = cell.GetNode<LineEdit>("%VariableEdit");
-		edit.Text = value;
-		edit.TextChanged += (string newText) =>
-		{
-			DataRow row = TableRef.GetRow(id);
-			row.SetValue(name, newText);
-		};
+		TableCell cell = EntryCell.Instantiate<TableCell>();
+		cell.SetValues(id, set, tableName, column);
 		return cell;
 	}
 
 	public void SaveTables()
 	{
-		mods.SaveMods();
+		Project.TableMods.SaveMods();
 	}
 
 	public void SelectTblImportFolder()
@@ -170,6 +171,6 @@ public partial class TableEditorTab : VBoxContainer
 
 		if (path == null) return;
 
-		mods.ImportModsFromTbl(path);
+		Project.TableMods.ImportModsFromTbl(path);
 	}
 }
